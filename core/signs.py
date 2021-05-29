@@ -70,20 +70,10 @@ class tradeSigns():
     df["sign"] = ""
     entrypoint = 'off'
     for i in range(0, len(df['close'])-1):
-      #strategy_result = Strategies.marginTrade(df = df, step = i)
+     
       strategy_result = Strategies.tlStrategy(df = df, step = i)
 
-      if strategy_result['signal'] == 'BUY' and entrypoint == 'off':
-        #print('buy: ',i)
-        self.buy_signals.append([df['time'][i], df['low'][i]])
-        df.loc[i, 'sign'] = 'buy'
-        entrypoint = 'on'
-      elif strategy_result['signal'] == 'SELL' and entrypoint == 'on':
-        #print('sell: ',i)
-        df.loc[i, 'sign'] = 'sell'
-        self.sell_signals.append([df['time'][i], df['low'][i]])
-        
-        entrypoint = 'off'
+     
 
     #print(self.sell_signals)
     self.chart.plotData(df, symbol, timeframe, self.param, self.buy_signals, self.sell_signals)
