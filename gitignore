@@ -1,3 +1,5 @@
 *.HTML
 *.pyc
+*.csv
+*.pdf
 
