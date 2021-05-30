@@ -55,7 +55,7 @@ class tradeSigns():
      
       strategy_result = Strategies.tlStrategy(df = df, dfSlope=dfSlope, step = i)
       #dfResult.loc[i, 'result'] = strategy_result
-      self.TLSR.append([df['time'][i], strategy_result)
+      self.TLSR.append([df['time'][i], strategy_result])
       print(str(i) +"\t"+str(dfResult['result'][i])+"\t"+str(dfSlope['histSlope'][i])+"\t"+str(dfSlope['adxSlope'][i])+"\t"+str(dfSlope['adxStatus'][i]))
 
      
