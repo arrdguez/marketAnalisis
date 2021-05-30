@@ -13,7 +13,7 @@ class chart():
     pass
 
   @staticmethod
-  def plotData(df, dfResult,symbol:str, timeframe:str, parameters, TLSR:list):
+  def plotData(df, symbol:str, timeframe:str, parameters, TLSR:list):
 
     color = dict(
       blue   = 'rgba(0, 0, 255, 1)',
