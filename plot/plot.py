@@ -2,6 +2,7 @@
 
 
 import pandas as pd
+from pandas.core.accessor import PandasDelegate
 
 import plotly.graph_objs as go
 from plotly.offline import plot
@@ -45,15 +46,62 @@ class chart():
              line = dict(color = (color[item['color']])))
         data.append(indicator)
 
+    colordf = pd.DataFrame(columns=['color'])
+    ctr = 0
+    for i in TLSR:
+      print(i[1])
+      if i[1] == '0a':
+        colordf.loc[ctr,'color'] = 'Black'
+      elif i[1] == '0b':
+        colordf.loc[ctr,'color'] = 'Black'
+      elif i[1] == '0c':
+        colordf.loc[ctr,'color'] = 'Orange'
+      elif i[1] == '0d':
+        colordf.loc[ctr,'color'] = 'Black'
+      
+      elif i[1] == '1a':
+        colordf.loc[ctr,'color'] = 'Green'
+      elif i[1] == '1b':
+        colordf.loc[ctr,'color'] = 'Green'
+      elif i[1] == '1c':
+        colordf.loc[ctr,'color'] = 'Green'
+      elif i[1] == '1d':
+        colordf.loc[ctr,'color'] = 'Green'
+           
+      elif i[1] == '2a':
+        colordf.loc[ctr,'color'] = 'Red'
+      elif i[1] == '2b':
+        colordf.loc[ctr,'color'] = 'Red'
+      elif i[1] == '2c':
+        colordf.loc[ctr,'color'] = 'Red'
+      elif i[1] == '2d':
+        colordf.loc[ctr,'color'] = 'Red'
+      
+           
+      elif i[1] == '3a':
+        colordf.loc[ctr,'color'] = 'Black'
+      elif i[1] == '3b':
+        colordf.loc[ctr,'color'] = 'Black'
+      elif i[1] == '3c':
+        colordf.loc[ctr,'color'] = 'Blue'
+      elif i[1] == '3d':
+        colordf.loc[ctr,'color'] = 'Blue'
+      
+      
+      
+      ctr = ctr +1
+
+    colorList = colordf['color'].values.tolist()
+    print(colorList)
 
     strategy = go.Scatter(
       x = [item[0] for item in TLSR],
-        y = [item[1] for item in TLSR],
+        y = [item[2]  for item in TLSR],
         name = "TLS",
-        mode = "markers",
+        mode = "markers", 
         marker_symbol="triangle-down",
-        marker_color='Red',
-        marker_size = 10
+        marker_color=colorList
+        #marker_size = 10
     )
     data.append(strategy)
     # style and display
