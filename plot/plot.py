@@ -13,7 +13,7 @@ class chart():
     pass
 
   @staticmethod
-  def plotData(df, dfResult,symbol:str, timeframe:str, parameters, buy_signals = False, sell_signals = False):
+  def plotData(df, dfResult,symbol:str, timeframe:str, parameters, TLSR:list):
 
     color = dict(
       blue   = 'rgba(0, 0, 255, 1)',
@@ -45,30 +45,17 @@ class chart():
              line = dict(color = (color[item['color']])))
         data.append(indicator)
 
-    if buy_signals:
-      buys = go.Scatter(
-          x = [item[0] for item in buy_signals],
-          y = [item[1] for item in buy_signals],
-          name = "Buy Signals",
-          mode = "markers",
-          marker_symbol="triangle-up",
-          marker_color='Blue',
-          marker_size = 10
-        )
-      data.append(buys)
 
-    if sell_signals:
-      sells = go.Scatter(
-        x = [item[0] for item in sell_signals],
-        y = [item[1] for item in sell_signals],
-        name = "Sell Signals",
+    strategy = go.Scatter(
+      x = [item[0] for item in TLSR],
+        y = [item[1] for item in TLSR],
+        name = "TLS",
         mode = "markers",
         marker_symbol="triangle-down",
         marker_color='Red',
         marker_size = 10
-      )
-      data.append(sells)
-
+    )
+    data.append(strategy)
     # style and display
     # let's customize our layout a little bit:
     plot_title = symbol+"_"+timeframe
