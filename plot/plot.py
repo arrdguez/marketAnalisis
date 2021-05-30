@@ -6,10 +6,6 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.offline import plot
 
-
-
-
-
 class chart():
   """docstring for chartcreator"""
   def __init__(self):
@@ -17,7 +13,7 @@ class chart():
     pass
 
   @staticmethod
-  def plotData(df, symbol:str, timeframe:str, parameters, buy_signals = False, sell_signals = False):
+  def plotData(df, dfResult,symbol:str, timeframe:str, parameters, buy_signals = False, sell_signals = False):
 
     color = dict(
       blue   = 'rgba(0, 0, 255, 1)',
@@ -49,8 +45,6 @@ class chart():
              line = dict(color = (color[item['color']])))
         data.append(indicator)
 
-
-
     if buy_signals:
       buys = go.Scatter(
           x = [item[0] for item in buy_signals],
@@ -74,8 +68,6 @@ class chart():
         marker_size = 10
       )
       data.append(sells)
-
-
 
     # style and display
     # let's customize our layout a little bit:
