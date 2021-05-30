@@ -43,7 +43,25 @@ class tradeSigns():
 
     df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe)
     #df = self.exchange.technicalA(df)
+    df = self.technicalAnalsis(df)
+    dfSlope = self.slopCalculator(df)
 
+    df.to_csv('./export.csv', sep='\t')
+    print(df)
+    print(dfSlope)
+    exit()
+    df["sign"] = ""
+    entrypoint = 'off'
+    for i in range(0, len(df['close'])-1):
+     
+      strategy_result = Strategies.tlStrategy(df = df, step = i)
+
+     
+
+    #print(self.sell_signals)
+    self.chart.plotData(df, symbol, timeframe, self.param, self.buy_signals, self.sell_signals)
+
+  def technicalAnalsis(self, df):
     df['3_ema'] = TA.EMA(df, 3)
     df['25_sma'] = TA.SMA(df, 25)
     #df['10_ema'] = TA.EMA(df, 10)
@@ -61,26 +79,11 @@ class tradeSigns():
     df["ADX"] = TA.ADX(df)
     df["ADX"] = df["ADX"].fillna(0)
     df["HIST_ESMA"] = df["HIST_ESMA"].fillna(0)
-
-    self.slopCalculator(df)
-
-    df.to_csv('./export.csv', sep='\t')
-    print(df)
-    exit()
-    df["sign"] = ""
-    entrypoint = 'off'
-    for i in range(0, len(df['close'])-1):
-     
-      strategy_result = Strategies.tlStrategy(df = df, step = i)
-
-     
-
-    #print(self.sell_signals)
-    self.chart.plotData(df, symbol, timeframe, self.param, self.buy_signals, self.sell_signals)
-
+    return df
 
   def slopCalculator(self, df):
     i = 3
+    dfSlope = pd.DataFrame(columns=['adxSlope', 'histSlope', 'adxStatus'])
     for i in range(2, len(df['close'])-1):
       adxSlope = 0
       histSlope = 0
@@ -100,10 +103,11 @@ class tradeSigns():
         histSlope = -1
       elif df['HIST_ESMA'][i] > df['HIST_ESMA'][i-1]:
         histSlope = 1
+      dfSlope.loc[i, 'adxSlope'] = adxSlope
+      dfSlope.loc[i, 'histSlope'] = histSlope
+      dfSlope.loc[i, 'adxStatus'] = adxStatus
 
-      
-
-      print(str(adxStatus) +"      "+  str(adxSlope) + "     "+ str(histSlope))
+    return dfSlope
 
 
 
