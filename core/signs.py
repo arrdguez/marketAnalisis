@@ -44,7 +44,7 @@ class tradeSigns():
     #df = self.exchange.technicalA(df)
     df = self.technicalAnalsis(df)
     dfSlope = self.slopCalculator(df)
-    dfResult = pd.DataFrame(columns=['result'])
+    dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
     df.to_csv('./export.csv', sep='\t')
     #print(df)
     #print(dfSlope)
@@ -54,16 +54,22 @@ class tradeSigns():
     for i in range(2, len(df['close'])-1):
      
       strategy_result = Strategies.tlStrategy(df = df, dfSlope=dfSlope, step = i)
-      #dfResult.loc[i, 'result'] = strategy_result
-      df.loc[i, 'result'] = strategy_result[1]
-      df.loc[i, 'resultCode'] = strategy_result[2]
+      dfResult.loc[i, 'time'] = list(strategy_result)[0]
+      
+      #dfResult.loc[i, 'resultCode'] = strategy_result[2]
+      dfResult.loc[i, 'date'] = strategy_result[-1]
+
+      #df.loc[i, 'result'] = strategy_result[1]
+      #df.loc[i, 'resultCode'] = strategy_result[2]
       self.TLSR.append([df['time'][i], strategy_result[0],    df['high'][i]])
       #print(str(i) +"\t"+str(strategy_result)+"\t"+str( ['histSlope'][i])+"\t"+str(dfSlope['adxSlope'][i])+"\t"+str(dfSlope['adxStatus'][i]))
 
-     
-
-    #print(self.sell_signals)
-    print(df)
+    
+    print(strategy_result)
+    
+    print(type(strategy_result))
+    print(dfResult)
+    #print(df)
     #self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
   def technicalAnalsis(self, df):
