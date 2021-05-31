@@ -55,16 +55,19 @@ class tradeSigns():
      
       strategy_result = Strategies.tlStrategy(df = df, dfSlope=dfSlope, step = i)
       #dfResult.loc[i, 'result'] = strategy_result
-      self.TLSR.append([df['time'][i], strategy_result,    df['high'][i]])
-      #print(str(i) +"\t"+str(strategy_result)+"\t"+str(dfSlope['histSlope'][i])+"\t"+str(dfSlope['adxSlope'][i])+"\t"+str(dfSlope['adxStatus'][i]))
+      df.loc[i, 'result'] = strategy_result[1]
+      df.loc[i, 'resultCode'] = strategy_result[2]
+      self.TLSR.append([df['time'][i], strategy_result[0],    df['high'][i]])
+      #print(str(i) +"\t"+str(strategy_result)+"\t"+str( ['histSlope'][i])+"\t"+str(dfSlope['adxSlope'][i])+"\t"+str(dfSlope['adxStatus'][i]))
 
      
 
     #print(self.sell_signals)
-    self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
+    print(df)
+    #self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
   def technicalAnalsis(self, df):
-    df['3_ema'] = TA.EMA(df, 3)
+    df['3_ema'] = TA.EMA(df, 10)
     df['25_sma'] = TA.SMA(df, 25)
     #df['10_ema'] = TA.EMA(df, 10)
     #df['55_ema'] = TA.EMA(df, 55)

@@ -45,43 +45,38 @@ class Strategies:
 
   @staticmethod
   def tlStrategy(df, dfSlope , step:int = 2):
-    #print(dfSlope)
-#    print(dfSlope['histSlope'][step])
-
     if dfSlope['histSlope'][step] > 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 1:
-      return '0a'
+      return ['0a', 1]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 0:
-      return '0b'
+      return ['0b', 2]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 1:
-      return '0c'
+      return ['0c', 3]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
-      return '0d'
+      return ['0d', 4]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 1:
-      return '1a'
+      return ['1a', 5]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 0:
-      return '1b'
+      return ['1b', 6]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 1:
-      return '1c'
+      return ['1c', 7]
     elif dfSlope['histSlope'][step] > 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
-      return '1d'
+      return ['1d', 8]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 1:
-      return '2a'
+      return ['2a', 9]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 0:
-      return '2b'
+      return ['2b', 10]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 1:
-      return '2c'
+      return ['2c', 11]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] > 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
-      return '2d'
+      return ['2d', 12]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 1:
-      return '3a'
+      return ['3a', 13]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] > 0 and dfSlope['adxStatus'][step] == 0:
-      return '3b'
+      return ['3b', 14]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 1:
-      return '3c'
+      return ['3c', 15]
     elif dfSlope['histSlope'][step] < 0 and df['HIST'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
-      return '3d'
-
-    
+      return ['3d', 16]
     else:
       return '0'
 

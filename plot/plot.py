@@ -49,7 +49,7 @@ class chart():
     colordf = pd.DataFrame(columns=['color'])
     ctr = 0
     for i in TLSR:
-      print(i[1])
+      #print(i[1])
       if i[1] == '0a':
         colordf.loc[ctr,'color'] = 'Black'
       elif i[1] == '0b':
@@ -92,7 +92,7 @@ class chart():
       ctr = ctr +1
 
     colorList = colordf['color'].values.tolist()
-    print(colorList)
+    #print(colorList)
 
     strategy = go.Scatter(
       x = [item[0] for item in TLSR],
