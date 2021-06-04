@@ -26,6 +26,55 @@ class chart():
       )
 
 
+    colordf = pd.DataFrame(columns=['color'])
+    ctr = 0
+    for i in TLSR:
+      #print(i[1])
+      if i[1] == '0a':
+        colordf.loc[ctr,'color'] = 'rgba(0,255,108,1)'
+      elif i[1] == '0b':
+        colordf.loc[ctr,'color'] = 'rgba(0,255,108,1)'
+      elif i[1] == '0c':
+        colordf.loc[ctr,'color'] = 'Orange'
+      elif i[1] == '0d':
+        colordf.loc[ctr,'color'] = 'Orange'
+      
+      elif i[1] == '1a':
+        colordf.loc[ctr,'color'] = 'Blue'
+      elif i[1] == '1b':
+        colordf.loc[ctr,'color'] = 'Blue'
+      elif i[1] == '1c':
+        colordf.loc[ctr,'color'] = 'Green'
+      elif i[1] == '1d':
+        colordf.loc[ctr,'color'] = 'Green'
+           
+      elif i[1] == '2a':
+        colordf.loc[ctr,'color'] = 'Orange'
+      elif i[1] == '2b':
+        colordf.loc[ctr,'color'] = 'rgba(192,32,237,1)'
+      elif i[1] == '2c':
+        colordf.loc[ctr,'color'] = 'Red'
+      elif i[1] == '2d':
+        colordf.loc[ctr,'color'] = 'Red'
+      
+           
+      elif i[1] == '3a':
+        colordf.loc[ctr,'color'] = 'rgba(192,32,237,1)'
+      elif i[1] == '3b':
+        colordf.loc[ctr,'color'] = 'rgba(192,32,237,1)'
+      elif i[1] == '3c':
+        colordf.loc[ctr,'color'] = 'Black'
+      elif i[1] == '3d':
+        colordf.loc[ctr,'color'] = 'Black'
+      
+      
+      
+      ctr = ctr +1
+
+    colorList = colordf['color'].values.tolist()
+    #print(colorList)
+
+
     # plot candlestick chart
     candle = go.Candlestick(
       x = df['time'],
@@ -34,7 +83,6 @@ class chart():
       high = df['high'],
       low = df['low'],
       name = "Candlesticks")
-
     data = [candle]
 
     for item in parameters:
@@ -45,54 +93,6 @@ class chart():
              name = item['name'],
              line = dict(color = (color[item['color']])))
         data.append(indicator)
-
-    colordf = pd.DataFrame(columns=['color'])
-    ctr = 0
-    for i in TLSR:
-      #print(i[1])
-      if i[1] == '0a':
-        colordf.loc[ctr,'color'] = 'Black'
-      elif i[1] == '0b':
-        colordf.loc[ctr,'color'] = 'Black'
-      elif i[1] == '0c':
-        colordf.loc[ctr,'color'] = 'Orange'
-      elif i[1] == '0d':
-        colordf.loc[ctr,'color'] = 'Black'
-      
-      elif i[1] == '1a':
-        colordf.loc[ctr,'color'] = 'Green'
-      elif i[1] == '1b':
-        colordf.loc[ctr,'color'] = 'Green'
-      elif i[1] == '1c':
-        colordf.loc[ctr,'color'] = 'Green'
-      elif i[1] == '1d':
-        colordf.loc[ctr,'color'] = 'Green'
-           
-      elif i[1] == '2a':
-        colordf.loc[ctr,'color'] = 'Red'
-      elif i[1] == '2b':
-        colordf.loc[ctr,'color'] = 'Red'
-      elif i[1] == '2c':
-        colordf.loc[ctr,'color'] = 'Red'
-      elif i[1] == '2d':
-        colordf.loc[ctr,'color'] = 'Red'
-      
-           
-      elif i[1] == '3a':
-        colordf.loc[ctr,'color'] = 'Black'
-      elif i[1] == '3b':
-        colordf.loc[ctr,'color'] = 'Black'
-      elif i[1] == '3c':
-        colordf.loc[ctr,'color'] = 'Blue'
-      elif i[1] == '3d':
-        colordf.loc[ctr,'color'] = 'Blue'
-      
-      
-      
-      ctr = ctr +1
-
-    colorList = colordf['color'].values.tolist()
-    #print(colorList)
 
     strategy = go.Scatter(
       x = [item[0] for item in TLSR],

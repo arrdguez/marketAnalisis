@@ -11,6 +11,8 @@ from strategies.strategies import Strategies
 from plot.plot import chart
 #import exchange
 
+from core.SMI import smiHistogram
+
 
 class tradeSigns():
   """
@@ -20,6 +22,7 @@ class tradeSigns():
   def __init__(self):
     self.exchange = Binance()
     self.chart = chart()
+    self.SMIH = smiHistogram()
 
 
     self.param = [{"col_name" : "4_ema", 
@@ -41,55 +44,42 @@ class tradeSigns():
     """
 
     df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe)
-    #df = self.exchange.technicalA(df)
     df = self.technicalAnalsis(df)
     dfSlope = self.slopCalculator(df)
     dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
-    df.to_csv('./export.csv', sep='\t')
+    
     #print(df)
     #print(dfSlope)
     #exit()
     df["sign"] = ""
     entrypoint = 'off'
+    listResult = []
     for i in range(2, len(df['close'])-1):
-     
-      strategy_result = Strategies.tlStrategy(df = df, dfSlope=dfSlope, step = i)
-      dfResult.loc[i, 'time'] = list(strategy_result)[0]
-      
-      #dfResult.loc[i, 'resultCode'] = strategy_result[2]
-      dfResult.loc[i, 'date'] = strategy_result[-1]
 
-      #df.loc[i, 'result'] = strategy_result[1]
-      #df.loc[i, 'resultCode'] = strategy_result[2]
-      self.TLSR.append([df['time'][i], strategy_result[0],    df['high'][i]])
-      #print(str(i) +"\t"+str(strategy_result)+"\t"+str( ['histSlope'][i])+"\t"+str(dfSlope['adxSlope'][i])+"\t"+str(dfSlope['adxStatus'][i]))
+      strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
+      listResult.append(strategy_result)
+      self.TLSR.append([df['time'][i], strategy_result,    df['high'][i]])
 
-    
-    print(strategy_result)
-    
-    print(type(strategy_result))
-    print(dfResult)
-    #print(df)
-    #self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
+
+    df.to_csv("df.csv", sep='\t')
+    dfSlope.to_csv("slope.csv", sep='\t')
+    #print(listResult)
+    #print(dfResult)
+
+    self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
   def technicalAnalsis(self, df):
-    df['3_ema'] = TA.EMA(df, 10)
-    df['25_sma'] = TA.SMA(df, 25)
-    #df['10_ema'] = TA.EMA(df, 10)
-    #df['55_ema'] = TA.EMA(df, 55)
-
-    #df2= TA.MACD(df = df, period_fast = 30, period_slow = 20, signal = 30)
-    df2= TA.MACD(df, period_fast = 30, period_slow = 20, signal = 30)
-    df2["HIST"] = df2["MACD"] - df2["SIGNAL"]
-    df["MACD"]   = df2["MACD"]
-    df["SIGNAL"] = df2["SIGNAL"]
-    df["HIST"]   = df2["HIST"]
-    df['HIST_ESMA'] = df['3_ema'] - df['25_sma']
+    df['10_ema'] = TA.EMA(df, 10)
+    df['55_ema'] = TA.EMA(df, 55)
 
     #ADX
     df["ADX"] = TA.ADX(df)
     df["ADX"] = df["ADX"].fillna(0)
-    df["HIST_ESMA"] = df["HIST_ESMA"].fillna(0)
+
+    #QMI
+    df['SMIH'] = self.SMIH.SMIH(df)
+
+
     return df
 
   def slopCalculator(self, df):
@@ -110,9 +100,9 @@ class tradeSigns():
       elif df['ADX'][i] > df['ADX'][i-1]:
         adxSlope = 1
 
-      if df['HIST_ESMA'][i] < df['HIST_ESMA'][i-1]:
+      if df['SMIH'][i] < df['SMIH'][i-1]:
         histSlope = -1
-      elif df['HIST_ESMA'][i] > df['HIST_ESMA'][i-1]:
+      elif df['SMIH'][i] > df['SMIH'][i-1]:
         histSlope = 1
       dfSlope.loc[i, 'adxSlope'] = adxSlope
       dfSlope.loc[i, 'histSlope'] = histSlope
@@ -125,7 +115,7 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "5m")
+  ts.sign("BTCUSDT", "1h")
 
 
 if __name__ == '__main__':
