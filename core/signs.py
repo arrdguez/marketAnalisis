@@ -48,9 +48,9 @@ class tradeSigns():
     dfSlope = self.slopCalculator(df)
     dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
     
-    #print(df)
+    print(df)
     #print(dfSlope)
-    #exit()
+    exit()
     df["sign"] = ""
     entrypoint = 'off'
     listResult = []
@@ -75,6 +75,14 @@ class tradeSigns():
     #ADX
     df["ADX"] = TA.ADX(df)
     df["ADX"] = df["ADX"].fillna(0)
+
+
+    #DMI
+    dfDMI  = TA.DMI(df)
+    df["DI-"] = dfDMI["DI-"]
+    df["DI+"] = dfDMI["DI+"]
+    df["DI+"] = df["DI+"].fillna(0)
+    df["DI-"] = df["DI-"].fillna(0)
 
     #QMI
     df['SMIH'] = self.SMIH.SMIH(df)
