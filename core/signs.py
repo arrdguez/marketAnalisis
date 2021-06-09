@@ -4,6 +4,7 @@ import pandas as pd
 from finta import TA
 
 import time
+import datetime
 import sys
 sys.path.insert(1, '../')
 from exchange.binance import Binance
@@ -35,39 +36,39 @@ class tradeSigns():
                    "color"    : "red", 
                    "name"     : "18_ema"}]
     self.TLSR = [[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5]]
-    self.indicatorMap = {"0a" : "",
-                             "0b" : "",
-                             "0c" : "",
-                             "0d" : "",
-                             "1a" : "",
-                             "1b" : "",
-                             "1c" : "",
-                             "1d" : "",
-                             "2a" : "",
-                             "2b" : "",
-                             "2c" : "",
-                             "2d" : "",
-                             "3a" : "",
-                             "3b" : "",
-                             "3c" : "",
-                             "3d" : ""}
+    self.indicatorMap = {"0a" : "(0a) Attention to close",
+                         "0b" : "(0b) Attention to close",
+                         "0c" : "(0c) Wait to Close",
+                         "0d" : "(0d) Wait nothing to do",
+                         "1a" : "(1a) Wait for the ADX change to Open",
+                         "1b" : "(1b) Wait for the ADX change to Open",
+                         "1c" : "(1c) Open",
+                         "1d" : "(1d) Open",
+                         "2a" : "(2a) Price is drop",
+                         "2b" : "(2b) Price is drop",
+                         "2c" : "(2c) Close",
+                         "2d" : "(2d) Close(if you are inside) or Wait",
+                         "3a" : "(3a) Strong drop price",
+                         "3b" : "(3b) Strong drop price",
+                         "3c" : "(3c) Wait the price can get drop strong",
+                         "3d" : "(3d) Wait the price can get drop strong"}
 
     self.indicatorMapVerbose = {"0a" : "",
-                                    "0b" : "",
-                                    "0c" : "",
-                                    "0d" : "",
-                                    "1a" : "",
-                                    "1b" : "",
-                                    "1c" : "",
-                                    "1d" : "",
-                                    "2a" : "",
-                                    "2b" : "",
-                                    "2c" : "",
-                                    "2d" : "",
-                                    "3a" : "",
-                                    "3b" : "",
-                                    "3c" : "",
-                                    "3d" : ""}
+                                "0b" : "",
+                                "0c" : "",
+                                "0d" : "",
+                                "1a" : "",
+                                "1b" : "",
+                                "1c" : "",
+                                "1d" : "",
+                                "2a" : "",
+                                "2b" : "",
+                                "2c" : "",
+                                "2d" : "",
+                                "3a" : "",
+                                "3b" : "",
+                                "3c" : "",
+                                "3d" : ""}
 
 
 
@@ -105,7 +106,7 @@ class tradeSigns():
     dfSlope.to_csv("slope.csv", sep='\t')
     #print(listResult)
     #print(dfResult)
-    exit()
+    #exit()
     self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
 
@@ -121,37 +122,45 @@ class tradeSigns():
       count += 1
       
 
-      df15m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "15m", limit = 140)
-      df15m = self.technicalAnalsis(df15m)
-      dfSlope15m = self.slopCalculator(df15m)
+
+      df3m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "3m", limit = 140)
+      df3m = self.technicalAnalsis(df3m)
+      dfSlope3m = self.slopCalculator(df3m)
+
 
       df5m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "5m", limit = 140)
       df5m = self.technicalAnalsis(df5m)
       dfSlope5m = self.slopCalculator(df5m)
 
-      #print(df5m)
-      #print(type(df5m))
-      #print(len(df5m['close'])-1)
 
 
-      #print(dfSlope5m)
-      #print(type(dfSlope5m))
-      #print(len(dfSlope5m['adxSlope'])-1)
+      df15m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "15m", limit = 140)
+      df15m = self.technicalAnalsis(df15m)
+      dfSlope15m = self.slopCalculator(df15m)
 
-      #exit()
+
+
+      strategy_result3m = Strategies.tlStrategyLiveLong(df = df3m, dfSlope=dfSlope3m, step = len(df3m['close'])-1)
+      strategy_result3mprev = Strategies.tlStrategyLiveLong(df = df3m, dfSlope=dfSlope3m, step = len(df3m['close'])-2)
+
+
       strategy_result5m = Strategies.tlStrategyLiveLong(df = df5m, dfSlope=dfSlope5m, step = len(df5m['close'])-1)
       strategy_result5mprev = Strategies.tlStrategyLiveLong(df = df5m, dfSlope=dfSlope5m, step = len(df5m['close'])-2)
 
 
       strategy_result15m = Strategies.tlStrategyLiveLong(df = df15m, dfSlope=dfSlope15m, step = len(df15m['close'])-1)
       strategy_result15mprev = Strategies.tlStrategyLiveLong(df = df15m, dfSlope=dfSlope15m, step = len(df15m['close'])-2)
+      
+      current_time = datetime.datetime.now()
+      print("\n\n                   Current Time: \033[1;36;40m"+ str(current_time)+"\033[m")
+      print("Parameter                  3m                  5m                  15m")
+      print("indicator                  "+str(strategy_result3m)+"                  "+str(strategy_result5m)+"                  "+str(strategy_result15m))
+      print("indicatorPre               "+str(strategy_result3mprev)+"                  "+str(strategy_result5mprev)+"                  "+str(strategy_result15mprev))
+      print("                 "+str(self.indicatorMap[strategy_result3m])+"    "+
+            str(self.indicatorMap[strategy_result5m])+"    "+
+            str(self.indicatorMap[strategy_result15m]))
 
-
-      print("Parameter              5m              15m")
-      print("indicator              "+str(strategy_result5m)+"              "+str(strategy_result15m))
-      print("indicatorPre           "+str(strategy_result5mprev)+"              "+str(strategy_result15mprev))
-
-      time.sleep(30)
+      time.sleep(60)
 
   def technicalAnalsis(self, df):
     df['10_ema'] = TA.EMA(df, 10)
@@ -205,8 +214,8 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  #ts.sign("BTCUSDT", "5m")
-  ts.analitic("BTCUSDT", "5m")
+  ts.sign("BTCUSDT", "5m")
+  #ts.analitic("BTCUSDT", "5m")
 
 
 if __name__ == '__main__':
