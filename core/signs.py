@@ -98,10 +98,13 @@ class tradeSigns():
       listResult.append(strategy_result)
       self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
       df.loc[i, 'signal'] = str(strategy_result)
+      if strategy_result == "1c" and listResult[-2] != "1c":
+        
+        print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
 
-    print(len(self.TLSR))
-    print(len(df))
-
+    for i in range(2, len(df['close'])-1):
+      print(str(df.loc[i,'date'])+"\t"+str(listResult[i])+"\t"+str(df.loc[i,'signal']))
+    exit()
     df.to_csv("df.csv", sep='\t')
     dfSlope.to_csv("slope.csv", sep='\t')
     #print(listResult)
