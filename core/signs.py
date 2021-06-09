@@ -34,7 +34,7 @@ class tradeSigns():
                   {"col_name" : "18_ema", 
                    "color"    : "red", 
                    "name"     : "18_ema"}]
-    self.TLSR = []
+    self.TLSR = [[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5]]
 
   def sign(self, symbol:str, timeframe:str):
     """
@@ -47,42 +47,39 @@ class tradeSigns():
     df = self.technicalAnalsis(df)
     dfSlope = self.slopCalculator(df)
     dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
-    
     print(df)
-    #print(dfSlope)
-    exit()
+
     df["sign"] = ""
     entrypoint = 'off'
     listResult = []
     for i in range(2, len(df['close'])-1):
 
       strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
+      print(strategy_result)
       listResult.append(strategy_result)
-      self.TLSR.append([df['time'][i], strategy_result,    df['high'][i]])
+      self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
+      df.loc[i, 'signal'] = str(strategy_result)
 
+    print(len(self.TLSR))
+    print(len(df))
 
     df.to_csv("df.csv", sep='\t')
     dfSlope.to_csv("slope.csv", sep='\t')
     #print(listResult)
     #print(dfResult)
-
+    exit()
     self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
   def technicalAnalsis(self, df):
     df['10_ema'] = TA.EMA(df, 10)
     df['55_ema'] = TA.EMA(df, 55)
 
+
     #ADX
-    df["ADX"] = TA.ADX(df)
+    df["ADX"] = self.SMIH.ADX(df)
     df["ADX"] = df["ADX"].fillna(0)
+    df = df.drop(columns=['plus','minus','sum','tmp', 'up', 'down', 'TR', 'truerange'])
 
-
-    #DMI
-    dfDMI  = TA.DMI(df)
-    df["DI-"] = dfDMI["DI-"]
-    df["DI+"] = dfDMI["DI+"]
-    df["DI+"] = df["DI+"].fillna(0)
-    df["DI-"] = df["DI-"].fillna(0)
 
     #QMI
     df['SMIH'] = self.SMIH.SMIH(df)
@@ -123,7 +120,7 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "1h")
+  ts.sign("BTCUSDT", "5m")
 
 
 if __name__ == '__main__':
