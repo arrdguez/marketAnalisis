@@ -31,6 +31,7 @@ class chart():
     ctr = 0
 
     for i in range(len(TLSR)-1):
+      print(i)
       if TLSR[i][1] == '0a':
         colordf.loc[i,'color'] = 'rgba(0,255,108,1)'
       elif TLSR[i][1] == '0b':
@@ -67,11 +68,15 @@ class chart():
         colordf.loc[i,'color'] = 'Black'
       elif TLSR[i][1] == '3d':
         colordf.loc[i,'color'] = 'Black'
+      else:
+        colordf.loc[i,'color'] = 'White'
 
     colorList = colordf['color'].values.tolist()
-    #print(colorList)
+    print(len(TLSR)-1)
+    print(colordf)
+    print(type(colordf))
 
-
+    
     # plot candlestick chart
     candle = go.Candlestick(
       x = df['time'],

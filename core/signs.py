@@ -94,7 +94,7 @@ class tradeSigns():
     for i in range(2, len(df['close'])-1):
 
       strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
-      print(strategy_result)
+      #print(strategy_result)
       listResult.append(strategy_result)
       self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
       df.loc[i, 'signal'] = str(strategy_result)
@@ -214,7 +214,7 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "5m")
+  ts.sign("BTCUSDT", "1h")
   #ts.analitic("BTCUSDT", "5m")
 
 
