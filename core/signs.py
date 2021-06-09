@@ -121,11 +121,11 @@ class tradeSigns():
       count += 1
       
 
-      df15m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "15m")#, limit = 250)
+      df15m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "15m", limit = 140)
       df15m = self.technicalAnalsis(df15m)
       dfSlope15m = self.slopCalculator(df15m)
 
-      df5m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "5m")#, limit = 250)
+      df5m = self.exchange.GetSymbolKlines(symbol = symbol, interval = "5m", limit = 140)
       df5m = self.technicalAnalsis(df5m)
       dfSlope5m = self.slopCalculator(df5m)
 
