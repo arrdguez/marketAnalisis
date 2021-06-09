@@ -86,24 +86,32 @@ class tradeSigns():
     df = self.technicalAnalsis(df)
     dfSlope = self.slopCalculator(df)
     dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
-    print(df)
+    #print(df)
 
 
     entrypoint = 'off'
     listResult = []
-    for i in range(2, len(df['close'])-1):
-
+    
+    for i in range(0, len(df['close'])):
       strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
       #print(strategy_result)
-      listResult.append(strategy_result)
+      listResult.append(str(strategy_result))
       self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
-      df.loc[i, 'signal'] = str(strategy_result)
-      if strategy_result == "1c" and listResult[-2] != "1c":
-        
-        print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
 
-    for i in range(2, len(df['close'])-1):
-      print(str(df.loc[i,'date'])+"\t"+str(listResult[i])+"\t"+str(df.loc[i,'signal']))
+      df.loc[i, 'signal'] = str(strategy_result)
+      #if strategy_result == "1c" and listResult[-2] != "1c":
+      # print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
+    
+
+    for i in range(0, len(df['close'])):
+      print(str(df.loc[i,'date'])+"\t"+str(df.loc[i,'signal'])+"\t"+str(dfSlope.loc[i,'histSlope'])+"\t"+str(dfSlope.loc[i,'adxSlope'])+"\t"+str(dfSlope.loc[i,'adxStatus'])+"\t"+str(df.loc[i,'ADX']))
+
+    print("\nlast strategy result: ", strategy_result)
+    print(timeframe)
+    print(dfSlope)
+    print(len(dfSlope))
+
+
     exit()
     df.to_csv("df.csv", sep='\t')
     dfSlope.to_csv("slope.csv", sep='\t')
