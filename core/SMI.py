@@ -130,13 +130,6 @@ class smiHistogram():
     #print(temporatDF.loc[999,'ADX'])
     return(temporatDF['ADX'])
 
-"""
-adx(dilen, adxlen) => 
-  [plus, minus] = dirmov(dilen)
-  sum = plus + minus
-  adx = 100 * rma(abs(plus - minus) / (sum == 0 ? 1 : sum), adxlen)
-  [adx, plus, minus]
-"""
 
 def main():
 
