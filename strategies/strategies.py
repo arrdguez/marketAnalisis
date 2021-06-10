@@ -78,6 +78,7 @@ class Strategies:
     elif dfSlope['histSlope'][step] < 0 and df['SMIH'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
       return [df['time'][step],'3d',  '16', df['date'][step]]
     else:
+
       return '0'
 
   @staticmethod
@@ -115,7 +116,9 @@ class Strategies:
     elif dfSlope['histSlope'][step] < 0 and df['SMIH'][step] < 0 and dfSlope['adxSlope'][step] < 0 and dfSlope['adxStatus'][step] == 0:
       return '3d'
     else:
-      return '0'
+      #print("histSlope\tSMIH\tadxSlope\tadxStatus")
+      #print(str(dfSlope['histSlope'][step])+"\t"+str(df['SMIH'][step])+"\t"+str(dfSlope['adxSlope'][step])+"\t"+str(dfSlope['adxStatus'][step]))
+      return 'flat'
 
 
   @staticmethod

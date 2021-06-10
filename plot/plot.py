@@ -46,7 +46,7 @@ class chart():
       elif TLSR[i][1] == '1b':
         colordf.loc[i,'color'] = 'Blue'
       elif TLSR[i][1] == '1c':
-        colordf.loc[i,'color'] = 'Green'
+        colordf.loc[i,'color'] = 'Blue'
       elif TLSR[i][1] == '1d':
         colordf.loc[i,'color'] = 'Green'
            

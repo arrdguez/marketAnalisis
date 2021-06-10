@@ -94,13 +94,16 @@ class tradeSigns():
     
     for i in range(0, len(df['close'])):
       strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
-      #print(strategy_result)
+
+      df.loc[i, 'signal'] = str(strategy_result)
+      if strategy_result == "1c" and listResult[-2] != "1c" and listResult[-2] == "3c":
+        #print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
+
+        strategy_result = "1b"
+
       listResult.append(str(strategy_result))
       self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
 
-      df.loc[i, 'signal'] = str(strategy_result)
-      #if strategy_result == "1c" and listResult[-2] != "1c":
-      # print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
     
 
     for i in range(0, len(df['close'])):
@@ -112,7 +115,7 @@ class tradeSigns():
     print(len(dfSlope))
 
 
-    exit()
+    #exit()
     df.to_csv("df.csv", sep='\t')
     dfSlope.to_csv("slope.csv", sep='\t')
     #print(listResult)
@@ -225,7 +228,11 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "1h")
+  ts.sign("BTCUSDT", "1m")
+  ts.sign("BTCUSDT", "3m")
+  ts.sign("BTCUSDT", "5m")
+  ts.sign("BTCUSDT", "15m")
+  ts.sign("BTCUSDT", "30m")
   #ts.analitic("BTCUSDT", "5m")
 
 
