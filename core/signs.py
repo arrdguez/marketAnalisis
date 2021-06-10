@@ -229,10 +229,6 @@ def Main():
 
   ts = tradeSigns()
   ts.sign("BTCUSDT", "1m")
-  ts.sign("BTCUSDT", "3m")
-  ts.sign("BTCUSDT", "5m")
-  ts.sign("BTCUSDT", "15m")
-  ts.sign("BTCUSDT", "30m")
   #ts.analitic("BTCUSDT", "5m")
 
 
