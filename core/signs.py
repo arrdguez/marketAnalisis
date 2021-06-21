@@ -71,6 +71,15 @@ class tradeSigns():
                                 "3d" : ""}
 
 
+    self.tFrameUp = {"1m" : "3m",
+                     "3m" : "5m",
+                     "5m" : "15m",
+                    "15m" : "30m",
+                    "30m" : "1h",
+                     "1h" : "4h",
+                     "2h" : "4h",
+                     "4h" : "1D"}
+
 
 
 
@@ -86,20 +95,39 @@ class tradeSigns():
     df = self.technicalAnalsis(df)
     dfSlope = self.slopCalculator(df)
     dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
-    #print(df)
+
+
+
+    
+    dfUp = self.exchange.GetSymbolKlines(symbol = symbol , interval = self.tFrameUp[timeframe])
+    dfUp = self.technicalAnalsis(dfUp)
+    dfSlopeUp = self.slopCalculator(dfUp)
+
+
+
 
 
     entrypoint = 'off'
     listResult = []
     
     for i in range(0, len(df['close'])):
-      strategy_result = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
+      strategy_result   = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
+      strategy_resultUp = Strategies.tlStrategyTWO(df = dfUp, dfSlope=dfSlopeUp, step = i)
 
       df.loc[i, 'signal'] = str(strategy_result)
-      if strategy_result == "1c" and listResult[-2] != "1c" and listResult[-2] == "3c":
-        #print(str(df.loc[i-1,'date'])+"\t"+str(listResult[-2])+"\t"+str(df.loc[i-1,'signal']))
+      listResult.append(str(strategy_result))
 
-        strategy_result = "1b"
+      if strategy_result == "1c" and listResult[-2] == "1c" and (listResult[-3] == "3a" or listResult[-3] == "1a"):
+        if strategy_resultUp == "3d" or strategy_resultUp == "1a" or strategy_resultUp == "2d" or strategy_resultUp == "2b" or strategy_resultUp == "2c" or strategy_resultUp == "2d" or strategy_resultUp == "0c" or strategy_resultUp == "0d":
+          strategy_result = "00"
+        else:
+          strategy_result = "1d"
+
+      elif strategy_result == "1d" and listResult[-2] == "1d":
+        if strategy_resultUp == "3d" or strategy_resultUp == "1a" or strategy_resultUp == "2d" or strategy_resultUp == "2b" or strategy_resultUp == "2c" or strategy_resultUp == "2d" or strategy_resultUp == "0c" or strategy_resultUp == "0d":
+          strategy_result = "00"
+        else:
+          strategy_result = "1d"
 
       listResult.append(str(strategy_result))
       self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
@@ -228,7 +256,7 @@ class tradeSigns():
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "1m")
+  ts.sign("BTCUSDT", "30m")
   #ts.analitic("BTCUSDT", "5m")
 
 
