@@ -35,7 +35,7 @@ class tradeSigns():
                   {"col_name" : "18_ema", 
                    "color"    : "red", 
                    "name"     : "18_ema"}]
-    self.TLSR = [[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5],[1622313900000.0, '0', 34110.5]]
+    self.TLSR = []
     self.indicatorMap = {"0a" : "(0a) Attention to close",
                          "0b" : "(0b) Attention to close",
                          "0c" : "(0c) Wait to Close",
@@ -82,82 +82,105 @@ class tradeSigns():
 
 
 
+  def backtesting(self, symbol:str, timeframe:str):
+    """
+
+    """
+
+    df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = 20000)
+
+    backTestStrategy = Strategies()
+    df = backTestStrategy.SslEMA(df)
+    print(df)
+    dataTrade = {
+            'initialBalance': 100.0,
+            'finalBalance'  : 100.0,
+            'entryPrice'    : 00.0,
+            'percent'       : 00.0,
+            'dateEntry'     : '',
+            'closePrice'    : 00.0,
+            'dateClose'     : '',
+            'totalTrades'   : 0,
+            'signalE':'',
+            'signalC':'',
+    }
+    backtestDf = pd.DataFrame(columns=['initialBalance',
+                                       'finalBalance',
+                                       'entryPrice',
+                                       'percent',
+                                       'dateEntry',
+                                       'closePrice',
+                                       'dateClose',
+                                       'totalTrades',
+                                       'signalE',
+                                       'signalC',])
+
+    entryLong = 'off'
+    for i in range(0, len(df['close'])):
+      if df['signal'][i] == 'long' and entryLong == 'off':
+        entryLong = 'on'
+        dataTrade['entryPrice'] = df['close'][i]
+        dataTrade['dateEntry'] = df['date'][i]
+        dataTrade['totalTrades'] += 1
+        dataTrade['signalE'] = df['signal'][i]
+        backtestDf = backtestDf.append(dataTrade, ignore_index=True, sort=False)
+      elif df['signal'][i] == 'closeLong' and entryLong == 'on':
+        entryLong = 'off'
+        #dataTrade['closePrice'] = df['close'][i]
+        #dataTrade['dateClose'] = df['date'][i]
+        percent = ((df['close'][i]/dataTrade['entryPrice']) * 100) - 100
+        dataTrade['finalBalance'] += (dataTrade['finalBalance'] * percent) / 100
+        
+
+        backtestDf["closePrice"].iloc[-1]   = df['close'][i]
+        backtestDf["dateClose"].iloc[-1]    = df['date'][i]
+        backtestDf["percent"].iloc[-1]      = percent 
+        backtestDf['finalBalance'].iloc[-1] = dataTrade['finalBalance']
+        backtestDf['signalC'].iloc[-1]      = df['signal'][i]
+        #backtestDf = backtestDf.append(dataTrade, ignore_index=True, sort=False)
+
+    print("\n  **  Data  **")
+    print('Symbol: ' + symbol)
+    print('Time Frame: ' + timeframe)
+    print('\n')
+    print(backtestDf)
+    backtestDf.to_csv("backtestDf.csv", sep='\t')
+
 
 
   def sign(self, symbol:str, timeframe:str):
     """
 
-
-
     """
 
-    df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe)
-    df = self.technicalAnalsis(df)
-    dfSlope = self.slopCalculator(df)
-    dfResult = pd.DataFrame(columns=['time','result', 'resultCode','date'])
+    df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = 20000)
+
+    SqueezMIndicator = Strategies()
+    strategy_result = SqueezMIndicator.SqueezMIndicator(df)
+    df = strategy_result[0]
+    listResult = strategy_result[1]
 
 
 
-    
-    dfUp = self.exchange.GetSymbolKlines(symbol = symbol , interval = self.tFrameUp[timeframe])
-    dfUp = self.technicalAnalsis(dfUp)
-    dfSlopeUp = self.slopCalculator(dfUp)
+    print(df)
+    print(listResult)
 
-
-
-
-
-    entrypoint = 'off'
-    listResult = []
-    
-    for i in range(0, len(df['close'])):
-      strategy_result   = Strategies.tlStrategyTWO(df = df, dfSlope=dfSlope, step = i)
-      strategy_resultUp = Strategies.tlStrategyTWO(df = dfUp, dfSlope=dfSlopeUp, step = i)
-
-      df.loc[i, 'signal'] = str(strategy_result)
-      listResult.append(str(strategy_result))
-
-      if strategy_result == "1c" and listResult[-2] == "1c" and (listResult[-3] == "3a" or listResult[-3] == "1a"):
-        if strategy_resultUp == "3d" or strategy_resultUp == "1a" or strategy_resultUp == "2d" or strategy_resultUp == "2b" or strategy_resultUp == "2c" or strategy_resultUp == "2d" or strategy_resultUp == "0c" or strategy_resultUp == "0d":
-          strategy_result = "00"
-        else:
-          strategy_result = "1d"
-
-      elif strategy_result == "1d" and listResult[-2] == "1d":
-        if strategy_resultUp == "3d" or strategy_resultUp == "1a" or strategy_resultUp == "2d" or strategy_resultUp == "2b" or strategy_resultUp == "2c" or strategy_resultUp == "2d" or strategy_resultUp == "0c" or strategy_resultUp == "0d":
-          strategy_result = "00"
-        else:
-          strategy_result = "1d"
-
-      listResult.append(str(strategy_result))
-      self.TLSR.append([df['time'][i], strategy_result, df['high'][i]])
-
-    
+ 
 
     for i in range(0, len(df['close'])):
-      print(str(df.loc[i,'date'])+"\t"+str(df.loc[i,'signal'])+"\t"+str(dfSlope.loc[i,'histSlope'])+"\t"+str(dfSlope.loc[i,'adxSlope'])+"\t"+str(dfSlope.loc[i,'adxStatus'])+"\t"+str(df.loc[i,'ADX']))
+      self.TLSR.append([df['date'][i], df['signal'][i], df['high'][i], df['low'][i]])
 
-    print("\nlast strategy result: ", strategy_result)
-    print(timeframe)
-    print(dfSlope)
-    print(len(dfSlope))
+    #for i in range(0, len(df['close'])):
+    #  print(str(df.loc[i,'date'])+"\t"+str(df.loc[i,'signal'])+"\t"+str(dfSlope.loc[i,'histSlope'])+"\t"+str(dfSlope.loc[i,'adxSlope'])+"\t"+str(dfSlope.loc[i,'adxStatus'])+"\t"+str(df.loc[i,'ADX']))
 
-
-    #exit()
     df.to_csv("df.csv", sep='\t')
-    dfSlope.to_csv("slope.csv", sep='\t')
-    #print(listResult)
-    #print(dfResult)
-    #exit()
+    
+
     self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
-
+"""
   def analitic(self, symbol:str, timeframe:str):
-    """
 
-
-
-    """
     steps = 30000
     count = int (0)
     while count <= steps:
@@ -250,7 +273,7 @@ class tradeSigns():
       dfSlope.loc[i, 'adxStatus'] = adxStatus
 
     return dfSlope
-
+"""
 
 
 def Main():

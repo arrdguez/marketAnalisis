@@ -6,6 +6,8 @@ from pandas.core.accessor import PandasDelegate
 
 import plotly.graph_objs as go
 from plotly.offline import plot
+from plotly.subplots import make_subplots
+
 
 class chart():
   """docstring for chartcreator"""
@@ -15,6 +17,9 @@ class chart():
 
   @staticmethod
   def plotData(df, symbol:str, timeframe:str, parameters, TLSR:list):
+    print("PLOT FUNCTION")
+    fig = make_subplots(rows=2, cols=1, specs=[[{"secondary_y": True}],[{"secondary_y": True}]])
+
 
     color = dict(
       blue   = 'rgba(0, 0, 255, 1)',
@@ -25,59 +30,160 @@ class chart():
       yellow = 'rgba(255, 255, 0, 1)'
       )
 
-
     colordf = pd.DataFrame(columns=['color'])
 
     ctr = 0
-
+    marker_symbolList = []
     for i in range(len(TLSR)-1):
-      print(i)
-      if TLSR[i][1] == '0a':
-        colordf.loc[i,'color'] = 'rgba(0,255,108,1)'
-      elif TLSR[i][1] == '0b':
-        colordf.loc[i,'color'] = 'rgba(0,255,108,1)'
-      elif TLSR[i][1] == '0c':
-        colordf.loc[i,'color'] = 'Orange'
-      elif TLSR[i][1] == '0d':
-        colordf.loc[i,'color'] = 'Orange'
-      
-      elif TLSR[i][1] == '1a':
-        colordf.loc[i,'color'] = 'Blue'
-      elif TLSR[i][1] == '1b':
-        colordf.loc[i,'color'] = 'Blue'
-      elif TLSR[i][1] == '1c':
-        colordf.loc[i,'color'] = 'Blue'
-      elif TLSR[i][1] == '1d':
-        colordf.loc[i,'color'] = 'Green'
-           
-      elif TLSR[i][1] == '2a':
-        colordf.loc[i,'color'] = 'Orange'
-      elif TLSR[i][1] == '2b':
-        colordf.loc[i,'color'] = 'rgba(192,32,237,1)'
-      elif TLSR[i][1] == '2c':
-        colordf.loc[i,'color'] = 'Red'
-      elif TLSR[i][1] == '2d':
-        colordf.loc[i,'color'] = 'Red'
-      
-           
-      elif TLSR[i][1] == '3a':
-        colordf.loc[i,'color'] = 'rgba(192,32,237,1)'
-      elif TLSR[i][1] == '3b':
-        colordf.loc[i,'color'] = 'rgba(192,32,237,1)'
-      elif TLSR[i][1] == '3c':
-        colordf.loc[i,'color'] = 'Black'
-      elif TLSR[i][1] == '3d':
-        colordf.loc[i,'color'] = 'Black'
+
+      if TLSR[i][1] == 'long':
+        colordf.loc[i,'color'] = 'rgba(0, 128, 0, 1)'
+        marker_symbolList.append('triangle-up')
+
+      elif TLSR[i][1] == 'short':
+        colordf.loc[i,'color'] = 'rgba(255, 0, 0, 1)'
+        marker_symbolList.append('triangle-down')
+
       else:
-        colordf.loc[i,'color'] = 'White'
+        colordf.loc[i,'color'] = 'rgba(255, 255, 255, 1)'
+        marker_symbolList.append('asterisk')
+
+      print("TLSR[i][1] "+str( TLSR[i][1])+"\tcolordf: "+str(colordf.loc[i,'color']))
+
+
 
     colorList = colordf['color'].values.tolist()
-    print(len(TLSR)-1)
-    print(colordf)
-    print(type(colordf))
+    print(colorList)
+    #print(colordf)
+    #print(type(colordf))
 
     
     # plot candlestick chart
+    
+    fig.add_trace(
+      go.Candlestick(
+      x = df['date'],
+      open = df['open'],
+      close = df['close'],
+      high = df['high'],
+      low = df['low'],
+      name = "Candlesticks"), row=1, col=1
+    )
+
+    x = []
+    y = []
+    for i in range(0, len(df['close'])):
+      x.append(df['date'][i])
+      y.append(df['10_ema'][i])
+
+    fig.add_trace(
+      go.Scatter(
+        x = x,
+        y = y,
+        name = "EMA10",
+        line=dict(color='blue', width=1),
+        #mode = 'lines',
+        ), 
+      row=1, col=1
+    )
+
+    x = []
+    y = []
+    for i in range(0, len(df['close'])):
+      x.append(df['date'][i])
+      y.append(df['55_ema'][i])
+
+    fig.add_trace(
+      go.Scatter(
+        x = x,
+        y = y,
+        name = "EMA55",
+        line=dict(color='red', width=1),
+        #mode = 'lines',
+        ), 
+      row=1, col=1
+    )
+
+    x = []
+    y = []
+    for item in TLSR:
+      x.append(item[0])
+      if item[1] == 'long':
+        y.append(item[2])
+      elif item[1] == 'sort':
+        y.append(item[3])
+      else:
+        y.append(item[2])
+    fig.add_trace(
+      go.Scatter(
+      x = x,
+        y = y,
+        name = "LONG",
+        mode = "markers", 
+        marker_symbol=marker_symbolList,
+        marker_color=colorList,
+        marker_size = 10
+        ), 
+      row=1, col=1
+    )
+
+
+    x = []
+    y = []
+    for i in range(0, len(df['close'])):
+      x.append(df['date'][i])
+      y.append(df['ADX'][i])
+
+    fig.add_trace(
+      go.Scatter(
+      x = x,
+        y = y,
+        name = "ADX",
+        mode = "markers", 
+        marker_symbol="triangle-down",
+        marker_color='black'
+        #marker_size = 10
+        ), 
+      row=2, col=1
+    )
+    x = []
+    y = []
+    for i in range(0, len(df['close'])):
+      x.append(df['date'][i])
+      y.append(23)
+
+    fig.add_trace(
+      go.Scatter(
+      x = x,
+        y = y,
+        name = "ADX",
+        #mode = "markers", 
+        #marker_symbol="triangle-down",
+        marker_color='black'
+        #marker_size = 10
+        ), 
+      row=2, col=1
+    )
+
+
+
+    x = []
+    y = []
+    for i in range(0, len(df['close'])):
+      x.append(df['date'][i])
+      y.append(df['SMIH'][i])
+
+    fig.add_trace(
+      go.Scatter(
+      x = x,
+        y = y,
+        name = "SMIH",
+        marker_color='red',
+        fill='tozeroy'), 
+      row=2, col=1, secondary_y=True,
+    )
+
+    """
     candle = go.Candlestick(
       x = df['time'],
       open = df['open'],
@@ -86,7 +192,7 @@ class chart():
       low = df['low'],
       name = "Candlesticks")
     data = [candle]
-
+   
     for item in parameters:
       if df.__contains__(item['col_name']):
         indicator = go.Scatter(
@@ -106,10 +212,12 @@ class chart():
         #marker_size = 10
     )
     data.append(strategy)
-    # style and display
-    # let's customize our layout a little bit:
+    """
+    
+
     plot_title = symbol+"_"+timeframe
-    layout = go.Layout(
+    #layout =
+    go.Layout(
       title=plot_title,
       xaxis = {
         "title" : symbol+"_"+timeframe,
@@ -119,7 +227,7 @@ class chart():
       yaxis = {
         "fixedrange" : False,
       })
-      
-    fig = go.Figure(data = data, layout = layout)
-
+    #exit()
+    #fig = go.Figure(data = data, layout = layout)
+    fig.update_layout(title_text=symbol+"_"+timeframe, xaxis_rangeslider_visible=False)
     plot(fig, filename='../'+plot_title+'.html')
