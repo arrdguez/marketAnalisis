@@ -32,11 +32,12 @@ def run():
     if options.timeframe:
       timeframe = str(options.timeframe)
     else:
-      timeframe = "30m"
+      timeframe = "1h"
 
 
     ts = tradeSigns()
-    ts.backtesting(symbol, timeframe)
+    #ts.backtesting(symbol, timeframe)
+    ts.BacktestLoop()
 
 
 def main():

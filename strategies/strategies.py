@@ -2,6 +2,7 @@ import pandas as pd
 
 from finta import TA
 from core.SMI import smiHistogram
+import math
 
 class Strategies:
 
@@ -89,62 +90,81 @@ class Strategies:
 
     return df, listResult
 
+  def SslEMA(self, df, emalength:int = 200, smalength:int = 10):
 
-  def SslEMA(self, df):
-    print('  **  Evaluatin SslEMA strategy  **')
-    df['200_ema'] = TA.EMA(df, 200)
-    
+    print('\n\n  **  Evaluating SSL+200EMA strategy  **')
 
-
-    #SSL
-
-    df['smaHigh'] = TA.SMA(df, 8, column = 'high')
-    df['smaLow'] = TA.SMA(df, 8, column = 'low')
-
-    df['sslDown'] = df['close']
-    df['sslUp'] = df['close']
+    df = Strategies.SSL(df,emalength = emalength, smalength = smalength)
+    print('\n\n  **  The strategy was evaluated  **')
     df['trend'] = ''
     df['signal'] = ''
-    for i in range(1, len(df['close'])):
-      Hlv = df['close'][i]
-      if df['close'][i] > df['smaHigh'][i]:
-        Hlv /= 1
-      elif df['close'][i] < df['smaLow'][i]:
-        Hlv /= -1
-      else:
-        Hlv /= df['close'][i - 1]
-      
-      if Hlv < 0:
-        df['sslDown'][i] = df['smaHigh'][i]
-        df['sslUp'][i] = df['smaLow'][i]
-      else:
-        df['sslDown'][i] = df['smaLow'][i]
-        df['sslUp'][i] = df['smaHigh'][i]
-  
+    #inTheMarket = False
+    insideMarketShort = False
+    insideMarketLong = False
+    longSL = 0.0
+    longOpenPrice = 0.0
+    shortSL = 0.0
+    shortOpenPrice = 0.0
 
-    for i in range(1, len(df['close'])):
-      if df['200_ema'][i] < df['close'][i]:
-        df['trend'][i] = 'bullish'
-      elif df['200_ema'][i] > df['close'][i]:
-        df['trend'][i] = 'bearish'
-      if df['trend'][i] == 'bullish' and df['sslUp'][i] > df['sslDown'][i]:
-        df['signal'][i] = 'long' 
-      elif df['trend'][i] == 'bullish' and df['sslUp'][i] < df['sslDown'][i]:
-        df['signal'][i] = 'closeLong' 
+    for i in range(0, len(df['close'])):
+      #print(i)
 
-      if df['trend'][i] == 'bearish' and df['sslUp'][i] < df['sslDown'][i]:
-        df['signal'][i] = 'short' 
+      if df['200_ema'].iloc[i] < df['close'][i]:
+        df['trend'].iloc[i] = 'bullish'
+      elif df['200_ema'].iloc[i] > df['close'][i]:
+        df['trend'].iloc[i] = 'bearish'
 
-      if df['trend'][i] == 'bearish' and df['sslUp'][i] > df['sslDown'][i]:
-        df['signal'][i] = 'closeShort' 
-      
-    for i in range(1, len(df['close'])):
+      #Taking profit of the long position
+      if insideMarketLong and df['sslUp'][i] < df['sslDown'][i] and df['close'][i] > longOpenPrice:
+        df['signal'].iloc[i] = 'closeLong'
+        insideMarketLong = False
+        longOpenPrice = 0.0
+        longSL = 0.0
 
-      print(df['trend'][i] +'\t'+df['signal'][i])
+      #Taking profit of the short position
+      elif insideMarketShort and df['sslUp'][i] > df['sslDown'][i] and df['close'][i] < shortOpenPrice :
+        df['signal'].iloc[i] = 'closeShort'
+        insideMarketShort = False
+        shortOpenPrice = 0.0
+        shortSL = 0.0
 
+
+
+      elif insideMarketLong and df['low'][i] < longSL:
+        df['signal'].iloc[i] = 'closeLongSL'
+        insideMarketLong = False
+        longOpenPrice = 0.0
+        longSL = 0.0
+
+      elif insideMarketShort and df['high'][i] > shortSL:
+        df['signal'].iloc[i] = 'closeShortSL'
+        insideMarketShort = False
+        shortOpenPrice = 0.0
+        shortSL = 0.0
+
+
+
+      #long entry
+      if df['trend'].iloc[i] == 'bullish' and df['sslUp'][i] > df['sslDown'][i] is not insideMarketLong and df['sslUp'][i-1] < df['sslDown'][i-1]:
+        df['signal'].iloc[i] = 'long'
+        longOpenPrice = df['close'][i]
+        insideMarketLong = True
+        longSL = df['sslDown'][i]
+
+      #short entry
+      elif df['trend'].iloc[i] == 'bearish' and df['sslUp'][i] < df['sslDown'][i] is not insideMarketShort and df['sslUp'][i-1] > df['sslDown'][i-1]:
+        df['signal'].iloc[i] = 'short'
+        shortOpenPrice = df['close'][i]
+        insideMarketShort = True
+        shortSL = df['sslDown'][i]
+
+
+      if df['signal'][i] == '':
+        df['signal'].iloc[i] = ' '
+
+    print('  **  The evaluation was finish successfully   **')
     return df
-    #plot(sslDown, linewidth=2, color=color.red)
-    #plot(sslUp, linewidth=2, color=color.lime)
+
 
   @staticmethod
   def marginTrade(df, step:int = 0):
@@ -298,3 +318,42 @@ class Strategies:
       return '3d'
     else:
       return '0'
+
+
+
+
+  @staticmethod
+  def SSL(df, emalength:int = 200, smalength:int = 10):
+    print('\n  **  Computing SSL **')
+    #print('  **  ', smalength)
+
+    df['200_ema'] = TA.EMA(df, emalength)
+    df['smaHigh'] = TA.SMA(df, smalength, column = 'high')
+    df['smaLow'] = TA.SMA(df, smalength, column = 'low')
+
+    df['sslDown'] = ''
+    df['sslUp'] = ''
+    df['Hlv'] = 0 
+    for i in range(0, len(df['close'])):
+      
+      if df['close'].iloc[i] > df['smaHigh'].iloc[i]:
+        df['Hlv'].iloc[i] = 1
+      elif df['close'].iloc[i] < df['smaLow'].iloc[i]:
+        df['Hlv'].iloc[i] = -1
+      else:
+        df['Hlv'].iloc[i] = df['Hlv'].iloc[i-1] 
+      
+      if df['Hlv'].iloc[i] < 0:
+        df['sslDown'].iloc[i] = df['smaHigh'].iloc[i]
+        df['sslUp'].iloc[i] = df['smaLow'].iloc[i]
+      else:
+        df['sslDown'].iloc[i] = df['smaLow'].iloc[i]
+        df['sslUp'].iloc[i] = df['smaHigh'].iloc[i]
+    return df
+
+
+  @staticmethod
+  
+  def truncate(number, digits) -> float:
+    stepper = 10.0 ** digits
+    return math.trunc(stepper * number) / stepper
