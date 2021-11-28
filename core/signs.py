@@ -15,6 +15,7 @@ from plot.plot import chart
 import pprint
 import math
 
+import glob                                         #to get the name of multiple files 
 from core.SMI import smiHistogram
 
 
@@ -92,13 +93,38 @@ class tradeSigns():
                      emalength:int = 200,
                            btd:bool = True, 
                        restart:bool = True, 
-                         limit:int = 1000, 
+                         limit:int = 1000,
+                      strategy:str = None,
+                      fromFile:str = False,
                          param:dict = {}):
     """
 
     """
+    if strategy == None:
+      print('You should provide a strategy to test.')
+      #exit()
+    else:
+      print('The strategy '+strategy+' will be test with the next specification:')
+    
+    if fromFile:
+      print('The data is obtain from local directory.')
+      list_of_files = glob.glob('/home/rfeynman/Dropbox/src/BinanceDB/*.csv')
+      df = pd.DataFrame()  
 
-    df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = limit)
+      for x in list_of_files:
+        tmpString = x[list_of_files[0].find('_')-9:]
+        if tmpString[tmpString.find('_')+1:tmpString.find('.')] == timeframe and tmpString[tmpString.find('/')+1:tmpString.find('_')] == symbol:
+          print(tmpString[tmpString.find('_')+1:tmpString.find('.')])
+          print(tmpString[tmpString.find('/')+1:tmpString.find('_')])
+          df = pd.read_csv(x, sep = '\t')
+          df['date'] = pd.to_datetime(df['date'])
+ 
+          #print(df)
+          #exit()
+         
+    else:
+      print('The data will by obtain from Binance')
+      df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = limit)
     backTestStrategy = Strategies()
 
     df = backTestStrategy.SslEMA(df, emalength = emalength, smalength = smaL)
@@ -118,15 +144,16 @@ class tradeSigns():
               'timeframe'      : '',  # before loop
               'backTestPeriod' : '',  # before loop
               'totalProfit'    : 0,   # end loop
-              'totalTrades'    : 0,    # each long&short cycle
-
-              'longN'         : 0,    # each cycle
-              'longProfit'    : 0,    # each cycle
-              'longMaxP'      : 0,    # end loop
-              'longMinP'      : 0,    # end loop
-              'longMaxPeriod' : 0,    # end loop
-              'longMinPeriod' : 0,    # end loop
-              'longCloseBySL' : 0,    # each cycle
+              'totalTrades'    : 0,   # each long&short cycle
+              'initialBalance' : 0,   # end loop
+              'finalBalance'   : 0,   # end loop
+              'longN'          : 0,    # each cycle
+              'longProfit'     : 0,    # each cycle
+              'longMaxP'       : 0,    # end loop
+              'longMinP'       : 0,    # end loop
+              'longMaxPeriod'  : 0,    # end loop
+              'longMinPeriod'  : 0,    # end loop
+              'longCloseBySL'  : 0,    # each cycle
 
               'shortN'         : 0,   # each cycle
               'shortProfit'    : 0,   # each cycle
@@ -383,17 +410,22 @@ class tradeSigns():
       resume['shortMinP'] = 0 
 
     resume['totalProfit'] = backtestDetail['profit'].sum()
-
+    resume['initialBalance'] = dataTrade['initialBalance']
+    resume['finalBalance'] = dataTrade['finalBalance']
+    #try:
+    #  resume['finalBalance'] = backtestDetail['finalBalance'][-1]
+    #except:
+    #  resume['finalBalance'] = backtestDetail['finalBalance'][-2]
 
 
     #print(backtestDetail)
     #print('\n')
-    pprint.pprint(resume)
+    #pprint.pprint(resume)
 
 
     #change the name of this variable btd = print back test details
     if btd:
-      filename = 'BackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
+      filename = './BTResults/BackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
       with open(filename, 'w') as f:
         f.write('#Details of the back test of the strategy.')
         f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
@@ -405,12 +437,7 @@ class tradeSigns():
         f.write('\n#SYMBOL:            ' + resume['symbol'])
         f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
         f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
-
-        
-        try:
-          f.write('\n#FINAL BALANCE:     ' + str(backtestDetail['finalBalance'][-1]))
-        except:
-          f.write('\n#FINAL BALANCE:     ' + str(backtestDetail['finalBalance'].iloc[-2]))
+        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
         f.write('\n')
         f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
         f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
@@ -460,44 +487,80 @@ class tradeSigns():
   def BacktestLoop(self):
               
 
+    
+
+    symbol = ['ADAUSDT','BTCUSDT','ETHUSDT','BNBUSDT', 'XRPUSDT', "LTCUSDT", 'AVAXUSDT']
+    timeframe = ['1m', '3m', '5m', '15m', '30m', '1h', '4h']
+    
+    '''
+    for i in symbol:
+      for x in timeframe:
+        filename = str(i)+'_'+str(x)+'.csv'
+        print(i)
+        df = self.exchange.GetSymbolKlines(symbol = i, interval = x, limit = 20000)
+        df.to_csv(filename, sep = '\t', index = False, columns = ['open','high', 'low', 'close', 'volume', 'date',])
+        #pfile = open(filename, 'w')
+        #pfile.write(df.to_string())
+        #pfile.close()
+    
+    exit()
+    '''
+
     BackTestResume = pd.DataFrame(columns = ['symbol',
-                                               'timeframe',
-                                               'backTestPeriod',
-                                               'totalProfit',
-                                               'totalTrades',
-                                               'longN',
-                                               'longProfit',
-                                               'longMaxP',
-                                               'longMinP',
-                                               'longMaxPeriod',
-                                               'longMinPeriod',
-                                               'longCloseBySL',
-                                               'shortN',
-                                               'shortProfit',
-                                               'shortMaxP',
-                                               'shortMinP',
-                                               'shortMaxPeriod',
-                                               'shortMinPeriod',
-                                               'shortCloseBySL',])        #close all
+                                             'timeframe',
+                                             'backTestPeriod',
+                                             'totalProfit',
+                                             'totalTrades',
+                                             'initialBalance',
+                                             'finalBalance',
+                                             'longN',
+                                             'longProfit',
+                                             'longMaxP',
+                                             'longMinP',
+                                             'longMaxPeriod',
+                                             'longMinPeriod',
+                                             'longCloseBySL',
+                                             'shortN',
+                                             'shortProfit',
+                                             'shortMaxP',
+                                             'shortMinP',
+                                             'shortMaxPeriod',
+                                             'shortMinPeriod',
+                                             'shortCloseBySL',])
 
     #symbol = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-    #timeframe = ['3m', '5m', '15m', '30m', '1h', '4h']
-    #smaL = [3, 4, 5, 6, 7, 8, 9, 10 ,11 ,12, 13, 14, 15]
-    
-    symbol = ['BTCUSDT']
-    timeframe = ['15m']
+    #timeframe = ['5m']
     smaL = [10]
+    
+
+
+    #timeframe = ['15m']
+    #smaL = [8]
     
     for i in range(len(symbol)):
       for x in range(len(timeframe)):
         for y in range(len(smaL)):
           print(symbol[i])
           print(timeframe[x])
-          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 500)
-          pprint.pprint(result)
+          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 25000, fromFile = True)
+          #pprint.pprint(result)
           BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
-    filename = 'BackTestDetail.csv'
-    BackTestResume.to_csv(filename, sep='\t')
+          #print(BackTestResume)
+    
+    #change the name of this variable btd = print back test details
+    
+    filename = './BTResults/BackTestDetail.dat'
+    with open(filename, 'w') as f:
+      f.write('#Result of the back testing for some symbols, timeframes, parameters.')
+      f.write('\n')
+      f.write('\n')
+    
+
+    
+    pfile = open(filename, 'a')
+    pfile.write(BackTestResume.to_string())
+    pfile.close()
+ 
 
   def sign(self, symbol:str, timeframe:str):
     """
@@ -534,13 +597,36 @@ class tradeSigns():
   def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
     return math.trunc(stepper * number) / stepper
+  
+  @staticmethod
+  def GetDataFromFile():
+    list_of_files = glob.glob('/home/rfeynman/Dropbox/src/BinanceDB/*.csv')
+    tmpList = []
+    timeFrameList = []
+    symbolList = []
+    for x in list_of_files:
+      tmpString = x[list_of_files[0].find('_')-9:]
+      timeFrameList.append(tmpString[tmpString.find('_')+1:tmpString.find('.')])
+      symbolList.append(tmpString[tmpString.find('/')+1:tmpString.find('_')])
+    #for x in tmpList:
+    #  print (x)
+    print(timeFrameList)
+    print(symbolList)
+    df = pd.DataFrame()                                        # this DataFrame var will contain the information of all files found! 
 
+
+    #for file_name in list_of_files:
+    #  print("Reading the file: %s"%file_name)
+    #  df = df.append(read_files(file_name), ignore_index=True) # calling the function for each file in the list and append to the general dataframe
+
+    #df = clean_df(df)
 
 def Main():
 
   ts = tradeSigns()
-  ts.sign("BTCUSDT", "30m")
+  #ts.sign("BTCUSDT", "30m")
   #ts.analitic("BTCUSDT", "5m")
+  #ts.GetDataFromFile()
 
 
 if __name__ == '__main__':

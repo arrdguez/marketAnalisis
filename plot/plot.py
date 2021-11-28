@@ -231,3 +231,17 @@ class chart():
     #fig = go.Figure(data = data, layout = layout)
     fig.update_layout(title_text=symbol+"_"+timeframe, xaxis_rangeslider_visible=False)
     plot(fig, filename='../'+plot_title+'.html')
+
+  @staticmethod
+  def plotEachTrade(df, symbol:str, timeframe:str):
+    
+    # plot candlestick chart 
+    fig.add_trace(
+      go.Candlestick(
+      x = df['date'],
+      open = df['open'],
+      close = df['close'],
+      high = df['high'],
+      low = df['low'],
+      name = "Candlesticks")#, row=1, col=1
+    )

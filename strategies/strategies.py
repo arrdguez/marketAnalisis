@@ -321,6 +321,7 @@ class Strategies:
 
 
 
+  # Util 
 
   @staticmethod
   def SSL(df, emalength:int = 200, smalength:int = 10):
@@ -353,7 +354,6 @@ class Strategies:
 
 
   @staticmethod
-  
   def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
     return math.trunc(stepper * number) / stepper
