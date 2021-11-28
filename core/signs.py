@@ -528,8 +528,8 @@ class tradeSigns():
                                              'shortMinPeriod',
                                              'shortCloseBySL',])
 
-    #symbol = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
-    #timeframe = ['5m']
+    symbol = ['ADAUSDT','BTCUSDT','ETHUSDT','BNBUSDT', 'XRPUSDT', "LTCUSDT", 'AVAXUSDT']
+    timeframe = ['1m', '3m', '5m', '15m', '30m', '1h', '4h']
     smaL = [10]
     
 
@@ -542,7 +542,7 @@ class tradeSigns():
         for y in range(len(smaL)):
           print(symbol[i])
           print(timeframe[x])
-          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 25000, fromFile = True)
+          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 25000, fromFile = True, emalength = 200,)
           #pprint.pprint(result)
           BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
           #print(BackTestResume)

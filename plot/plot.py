@@ -245,3 +245,14 @@ class chart():
       low = df['low'],
       name = "Candlesticks")#, row=1, col=1
     )
+
+    fig.add_trace(
+      go.Scatter(
+        x = x,
+        y = y,
+        name = "EMA10",
+        line=dict(color='blue', width=1),
+        #mode = 'lines',
+        ), 
+      row=1, col=1
+    )
