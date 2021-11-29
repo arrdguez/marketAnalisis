@@ -426,6 +426,7 @@ class tradeSigns():
     #change the name of this variable btd = print back test details
     if btd:
       filename = './BTResults/BackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
+      print(filename)
       with open(filename, 'w') as f:
         f.write('#Details of the back test of the strategy.')
         f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
@@ -542,7 +543,7 @@ class tradeSigns():
         for y in range(len(smaL)):
           print(symbol[i])
           print(timeframe[x])
-          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 25000, fromFile = True, emalength = 200,)
+          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 250, fromFile = False, emalength = 200,)
           #pprint.pprint(result)
           BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
           #print(BackTestResume)
