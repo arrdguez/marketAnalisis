@@ -233,7 +233,7 @@ class chart():
     plot(fig, filename='../'+plot_title+'.html')
 
   @staticmethod
-  def plotEachTrade(df, symbol:str, timeframe:str):
+  def plotEachTrade(df, symbol:str, timeframe:str, param:dict = None):
     
     # plot candlestick chart 
     fig.add_trace(
@@ -256,3 +256,20 @@ class chart():
         ), 
       row=1, col=1
     )
+
+    plot_title = symbol+"_"+timeframe
+    #layout =
+    go.Layout(
+      title=plot_title,
+      xaxis = {
+        "title" : symbol+"_"+timeframe,
+        "rangeslider" : {"visible": False},
+        "type" : "date"
+      },
+      yaxis = {
+        "fixedrange" : False,
+      })
+    #exit()
+    #fig = go.Figure(data = data, layout = layout)
+    fig.update_layout(title_text=symbol+"_"+timeframe, xaxis_rangeslider_visible=False)
+    plot(fig, filename='../'+plot_title+'.png')

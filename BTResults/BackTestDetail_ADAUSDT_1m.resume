@@ -1,0 +1,49 @@
+#Details of the back test of the strategy.
+#NOTE.1: All notes are write using '#' to by consider like comments in case you want to pass this file to gnuplot for example.
+#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds
+
+
+#-------------- RESUME --------------
+#               DATE
+#SYMBOL:            ADAUSDT
+#TIMEFRAME:         1m
+#BACK Test PERIODO: 10.375 days
+#FINAL BALANCE:     102.35995807411257
+
+#TOTAL PROFIT:      2.3299999999999996
+#TOTAL TRADES:      6
+
+#-------------- LONG ----------------
+#TOTAL LONG:        0
+#LONG CLOSED BY SL: 0
+#LONG PROFIT:       0
+#MAX LONG PROFIT:   0
+#MIN LONG PROFIT:   0
+#MAX DURATION LONG: 0
+#MIN DURATION LONG: 0
+
+#-------------- SHORT ----------------
+#TOTAL SHORT:        6
+#SHORT CLOSED BY SL: 0
+#SHORT PROFIT:       2.3599580741125736
+#MAX SHORT PROFIT:   0
+#MIN SHORT PROFIT:   0
+#MAX DURATION SHORT: 0
+#MIN DURATION SHORT: 0
+
+
+#--------- STRATEGY PARAMETERS -------
+#SMA:            10
+#EMA:            200
+#LENGTH OF DATA: 250
+#RESTART:        False
+
+#DATA FRAME
+
+  totalTrades  initialBalance finalBalance  entryPrice closePrice percent           dateEntry            dateClose   long short stopLoss signalEntry signalClose  profit period
+0           1             100       100.62       1.596      1.586    0.62 2021-12-01 17:39:00  2021-12-01 18:22:00  False  True    False       short  closeShort    0.62   43.0
+1           2             100       101.45       1.585      1.572    0.82 2021-12-01 18:42:00  2021-12-01 19:19:00  False  True    False       short  closeShort    0.82   37.0
+2           3             100        101.7       1.577      1.573    0.25 2021-12-01 19:45:00  2021-12-01 20:12:00  False  True    False       short  closeShort    0.25   27.0
+3           4             100       102.03       1.570      1.565    0.31 2021-12-01 20:16:00  2021-12-01 20:40:00  False  True    False       short  closeShort    0.32   24.0
+4           5             100       102.35       1.561      1.556    0.32 2021-12-01 20:45:00  2021-12-01 21:09:00  False  True    False       short  closeShort    0.32   24.0
+5           6             100                    1.548                    2021-12-01 21:18:00                       False  True                short                 NaN       

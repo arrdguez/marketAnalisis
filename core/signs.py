@@ -163,6 +163,8 @@ class tradeSigns():
               'shortMinPeriod' : 0,   # end loop
               'shortCloseBySL' : 0}   # each cycle
 
+
+
     backtestDetail = pd.DataFrame(columns = ['totalTrades',    #entry all
                                              'initialBalance', #before loop
                                              'finalBalance',   #close all
@@ -179,6 +181,9 @@ class tradeSigns():
                                              'profit',
                                              'period'])        #close all
 
+      
+    toPlot = pd.DataFrame(columns = df.columns.tolist() )
+ 
     temporalDict = {'totalTrades' : '',
                     'initialBalance' : '',
                     'finalBalance' : '',
@@ -193,6 +198,8 @@ class tradeSigns():
                     'signalEntry' : '',
                     'signalClose' : '',
                     'period' : ''}
+
+    
 
     #BackTesting Loop
     resume['symbol'] = symbol
@@ -223,6 +230,8 @@ class tradeSigns():
         temporalDict['long']         = True
         temporalDict['short']        = False
         temporalDict['signalEntry']  = df['signal'][i]
+
+        
 
         backtestDetail = backtestDetail.append(temporalDict, ignore_index=True, sort=False)
 
@@ -256,6 +265,7 @@ class tradeSigns():
         else:
           backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
         backtestDetail['signalClose'].iloc[-1]  = df['signal'][i]
+        toPlot = toPlot.append(df[:].iloc[i], ignore_index=True)
 
       #Close long position by stop loss
       elif df['signal'].iloc[i] == 'closeLongSL' and entryLong == 'on':
@@ -291,10 +301,11 @@ class tradeSigns():
         else:
           backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
         backtestDetail['signalClose'].iloc[-1]  = df['signal'][i]
-      #"""
-      #"""
+        toPlot = toPlot.append(df[:].iloc[i], ignore_index=True)
+
+
+
       #Take short position
-      
       if df['signal'][i] == 'short' and entryLong == 'off' and entryShort == 'off':
         
         entryShort = 'on'
@@ -313,6 +324,7 @@ class tradeSigns():
         temporalDict['signalEntry']  = df['signal'][i]
         
         backtestDetail = backtestDetail.append(temporalDict, ignore_index=True, sort=False)
+        
 
       #Close short position
       elif df['signal'].iloc[i] == 'closeShort' and entryShort == 'on':
@@ -348,6 +360,7 @@ class tradeSigns():
         else:
           backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
         backtestDetail['signalClose'].iloc[-1]  = df['signal'][i]
+        toPlot = toPlot.append(df[:].iloc[i], ignore_index=True)
 
       #Close long position by stop loss
       elif df['signal'].iloc[i] == 'closeShortSL' and entryShort == 'on':
@@ -383,12 +396,18 @@ class tradeSigns():
         else:
           backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
         backtestDetail['signalClose'].iloc[-1]  = df['signal'][i]
+        toPlot = toPlot.append(df[:].iloc[i], ignore_index=True)
 
       #"""
-      backtestDetail['initialBalance'] = 100
+      if entryLong == 'on' or entryShort == 'on':
+        toPlot = toPlot.append(df[:].iloc[i], ignore_index=True)
+      
 
+    backtestDetail['initialBalance'] = 100
+    
 
-
+    print(toPlot)
+    #exit()
     #long
     try:
       resume['longMaxP'] = max(list(backtestDetail[backtestDetail.long == True]['percent']))
@@ -480,7 +499,7 @@ class tradeSigns():
       #backtestDetail.to_csv(filename, sep='\t')
 
 
-
+    self.chart.plotEachTrade(df = toPlot, symbol = symbol, timeframe = timeframe)
     return resume
 
 
