@@ -1,0 +1,4 @@
+#Result of the back testing for some symbols, timeframes, parameters.
+
+    symbol timeframe           backTestPeriod  totalProfit totalTrades  initialBalance  finalBalance longN  longProfit  longMaxP  longMinP longMaxPeriod longMinPeriod longCloseBySL shortN  shortProfit shortMaxP shortMinP shortMaxPeriod shortMinPeriod shortCloseBySL
+0  BTCUSDT        1m  31.208333333333332 days         0.72          21           100.0     99.679568    12    1.083637      0.99     -0.15             0             0             6      9    -0.367991         0         0              0              0              5

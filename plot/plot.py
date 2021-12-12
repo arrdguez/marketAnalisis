@@ -234,7 +234,7 @@ class chart():
 
   @staticmethod
   def plotEachTrade(df, symbol:str, timeframe:str, param:dict = None):
-    
+    fig = go.Figure()
     # plot candlestick chart 
     fig.add_trace(
       go.Candlestick(
@@ -244,18 +244,93 @@ class chart():
       high = df['high'],
       low = df['low'],
       name = "Candlesticks")#, row=1, col=1
-    )
+      )
+
+    x = []
+    y = []
+    marker_symbol = []
+    colorList = []
+    for i in range(0, len(df['close'])):
+      if df['trade'][i] == 'a':
+        x.append(df['date'][i])
+        y.append(df['close'][i])
+        marker_symbol.append('triangle-up')
+        colorList.append('green')
+      elif df['trade'][i] == 'b':
+        x.append(df['date'][i])
+        y.append(df['close'][i])
+        marker_symbol.append('circle')
+        colorList.append('green')
+      elif df['trade'][i] == 'c':
+        x.append(df['date'][i])
+        y.append(df['low'][i])
+        marker_symbol.append('x')
+        colorList.append('green')
+      if df['trade'][i] == 'd':
+        x.append(df['date'][i])
+        y.append(df['close'][i])
+        marker_symbol.append('triangle-down')
+        colorList.append('purple')
+      elif df['trade'][i] == 'e':
+        x.append(df['date'][i])
+        y.append(df['close'][i])
+        marker_symbol.append('circle')
+        colorList.append('red')
+      elif df['trade'][i] == 'f':
+        x.append(df['date'][i])
+        y.append(df['high'][i])
+        marker_symbol.append('x')
+        colorList.append('red')
+
+    filename = './BTResults/PlotBackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
+      
+    with open(filename, 'w') as f:
+      for i in range(0, len(x)):
+        f.write(str(x[i])+' '+str(y[i])+'\n')
 
     fig.add_trace(
       go.Scatter(
         x = x,
         y = y,
-        name = "EMA10",
-        line=dict(color='blue', width=1),
-        #mode = 'lines',
-        ), 
-      row=1, col=1
+        name = "TRADES",
+        mode = "markers", 
+        marker_symbol = marker_symbol,
+        marker_color = colorList,
+        marker_size = 10
+        ), #row=1, col=1
     )
+
+
+    fig.add_trace(
+      go.Scatter(
+        x = list(df['date']) ,
+        y = list(df['sslUp']) ,
+        name = "SSLGreen",
+        line = dict(color = 'green')
+        ), #row=1, col=1
+    )
+
+    fig.add_trace(
+      go.Scatter(
+        x = list(df['date']) ,
+        y = list(df['sslDown']) ,
+        name = "SSLRed",
+        line = dict(color = 'red')
+        ), #row=1, col=1
+    )
+
+    fig.add_trace(
+      go.Scatter(
+        x = list(df['date']) ,
+        y = list(df['200_ema']) ,
+        name = "EMA200",
+        line = dict(color = 'black')
+        ), #row=1, col=1
+    )
+
+
+
+
 
     plot_title = symbol+"_"+timeframe
     #layout =
@@ -272,4 +347,5 @@ class chart():
     #exit()
     #fig = go.Figure(data = data, layout = layout)
     fig.update_layout(title_text=symbol+"_"+timeframe, xaxis_rangeslider_visible=False)
-    plot(fig, filename='../'+plot_title+'.png')
+    
+    plot(fig, filename='../'+plot_title+'.html')

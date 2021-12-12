@@ -122,7 +122,7 @@ class Strategies:
         longSL = 0.0
 
       #Taking profit of the short position
-      elif insideMarketShort and df['sslUp'][i] > df['sslDown'][i] and df['close'][i] < shortOpenPrice :
+      if insideMarketShort and df['sslUp'][i] > df['sslDown'][i] and df['close'][i] < shortOpenPrice :
         df['signal'].iloc[i] = 'closeShort'
         insideMarketShort = False
         shortOpenPrice = 0.0
@@ -130,13 +130,13 @@ class Strategies:
 
 
 
-      elif insideMarketLong and df['low'][i] < longSL:
+      if insideMarketLong and df['low'][i] <= longSL:
         df['signal'].iloc[i] = 'closeLongSL'
         insideMarketLong = False
         longOpenPrice = 0.0
         longSL = 0.0
 
-      elif insideMarketShort and df['high'][i] > shortSL:
+      if insideMarketShort and df['high'][i] >= shortSL:
         df['signal'].iloc[i] = 'closeShortSL'
         insideMarketShort = False
         shortOpenPrice = 0.0
