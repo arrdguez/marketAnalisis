@@ -92,12 +92,14 @@ class Strategies:
 
   def SslEMA(self, df, emalength:int = 200, smalength:int = 10):
 
-    print('\n\n  **  Evaluating SSL+200EMA strategy  **')
+    print('\n  **  Evaluating SSL+200EMA strategy  **')
 
     df = Strategies.SSL(df,emalength = emalength, smalength = smalength)
-    print('\n\n  **  The strategy was evaluated  **')
+    print('  **  The strategy was evaluated  **')
     df['trend'] = ''
-    df['signal'] = ''
+    df['LongSignals'] = ''
+    df['ShortSignals'] = ''
+    df['StopLossPrice'] = 0.0
     #inTheMarket = False
     insideMarketShort = False
     insideMarketLong = False
@@ -110,59 +112,59 @@ class Strategies:
       #print(i)
 
       if df['200_ema'].iloc[i] < df['close'][i]:
-        df['trend'].iloc[i] = 'bullish'
+        df.loc[i, ('trend')] = 'bullish'
       elif df['200_ema'].iloc[i] > df['close'][i]:
-        df['trend'].iloc[i] = 'bearish'
+        df.loc[i, ('trend')] = 'bearish'
 
       #Taking profit of the long position
       if insideMarketLong and df['sslUp'][i] < df['sslDown'][i] and df['close'][i] > longOpenPrice:
-        df['signal'].iloc[i] = 'closeLong'
+        df.loc[i, ('LongSignals')] = 'closeLong'
         insideMarketLong = False
         longOpenPrice = 0.0
         longSL = 0.0
 
       #Taking profit of the short position
       if insideMarketShort and df['sslUp'][i] > df['sslDown'][i] and df['close'][i] < shortOpenPrice :
-        df['signal'].iloc[i] = 'closeShort'
+        df.loc[i, ('ShortSignals')] = 'closeShort'
         insideMarketShort = False
         shortOpenPrice = 0.0
         shortSL = 0.0
 
-
-
       if insideMarketLong and df['low'][i] <= longSL:
-        df['signal'].iloc[i] = 'closeLongSL'
+        df.loc[i, ('LongSignals')] = 'closeLongSL'
         insideMarketLong = False
         longOpenPrice = 0.0
         longSL = 0.0
 
       if insideMarketShort and df['high'][i] >= shortSL:
-        df['signal'].iloc[i] = 'closeShortSL'
+        df.loc[i, ('ShortSignals')] = 'closeShortSL'
         insideMarketShort = False
         shortOpenPrice = 0.0
         shortSL = 0.0
 
-
-
       #long entry
       if df['trend'].iloc[i] == 'bullish' and df['sslUp'][i] > df['sslDown'][i] is not insideMarketLong and df['sslUp'][i-1] < df['sslDown'][i-1]:
-        df['signal'].iloc[i] = 'long'
+        df.loc[i, ('LongSignals')] = 'long'
         longOpenPrice = df['close'][i]
         insideMarketLong = True
         longSL = df['sslDown'][i]
+        df.loc[i, ('StopLossPrice')] = longSL
 
       #short entry
       elif df['trend'].iloc[i] == 'bearish' and df['sslUp'][i] < df['sslDown'][i] is not insideMarketShort and df['sslUp'][i-1] > df['sslDown'][i-1]:
-        df['signal'].iloc[i] = 'short'
+        df.loc[i, ('ShortSignals')] = 'short'
         shortOpenPrice = df['close'][i]
         insideMarketShort = True
         shortSL = df['sslDown'][i]
+        df.loc[i, ('StopLossPrice')] = shortSL
 
 
-      if df['signal'][i] == '':
-        df['signal'].iloc[i] = ' '
+      #if df['signal'][i] == '':
+      #  df['signal'].iloc[i] = ' '
 
     print('  **  The evaluation was finish successfully   **')
+    df = df.drop(columns=['Hlv', 'smaHigh', 'smaLow', 'trend'])
+    
     return df
 
 
@@ -334,22 +336,22 @@ class Strategies:
 
     df['sslDown'] = ''
     df['sslUp'] = ''
-    df['Hlv'] = 0 
+    df['Hlv'] = 0.0 
+
     for i in range(0, len(df['close'])):
       
       if df['close'].iloc[i] > df['smaHigh'].iloc[i]:
-        df['Hlv'].iloc[i] = 1
+        df.loc[i, ('Hlv')] = 1
       elif df['close'].iloc[i] < df['smaLow'].iloc[i]:
-        df['Hlv'].iloc[i] = -1
+        df.loc[i, ('Hlv')] = -1
       else:
-        df['Hlv'].iloc[i] = df['Hlv'].iloc[i-1] 
-      
+        df.loc[i, ('Hlv')] = df['Hlv'].iloc[i-1] 
       if df['Hlv'].iloc[i] < 0:
-        df['sslDown'].iloc[i] = df['smaHigh'].iloc[i]
-        df['sslUp'].iloc[i] = df['smaLow'].iloc[i]
+        df.loc[i, ('sslDown')] = df['smaHigh'].iloc[i]
+        df.loc[i, ('sslUp')] = df['smaLow'].iloc[i]
       else:
-        df['sslDown'].iloc[i] = df['smaLow'].iloc[i]
-        df['sslUp'].iloc[i] = df['smaHigh'].iloc[i]
+        df.loc[i, ('sslDown')] = df['smaLow'].iloc[i]
+        df.loc[i, ('sslUp')] = df['smaHigh'].iloc[i]
     return df
 
 

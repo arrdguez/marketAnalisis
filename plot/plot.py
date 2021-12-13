@@ -251,32 +251,32 @@ class chart():
     marker_symbol = []
     colorList = []
     for i in range(0, len(df['close'])):
-      if df['trade'][i] == 'a':
+      if df['trade'][i] == 'openLong':
         x.append(df['date'][i])
         y.append(df['close'][i])
         marker_symbol.append('triangle-up')
         colorList.append('green')
-      elif df['trade'][i] == 'b':
+      elif df['trade'][i] == 'closeLong':
         x.append(df['date'][i])
         y.append(df['close'][i])
         marker_symbol.append('circle')
         colorList.append('green')
-      elif df['trade'][i] == 'c':
+      elif df['trade'][i] == 'closeLongBySL':
         x.append(df['date'][i])
         y.append(df['low'][i])
         marker_symbol.append('x')
         colorList.append('green')
-      if df['trade'][i] == 'd':
+      if df['trade'][i] == 'openShort':
         x.append(df['date'][i])
         y.append(df['close'][i])
         marker_symbol.append('triangle-down')
         colorList.append('purple')
-      elif df['trade'][i] == 'e':
+      elif df['trade'][i] == 'closeShort':
         x.append(df['date'][i])
         y.append(df['close'][i])
         marker_symbol.append('circle')
         colorList.append('red')
-      elif df['trade'][i] == 'f':
+      elif df['trade'][i] == 'closeShortBySL':
         x.append(df['date'][i])
         y.append(df['high'][i])
         marker_symbol.append('x')
@@ -296,7 +296,7 @@ class chart():
         mode = "markers", 
         marker_symbol = marker_symbol,
         marker_color = colorList,
-        marker_size = 10
+        marker_size = 15
         ), #row=1, col=1
     )
 
