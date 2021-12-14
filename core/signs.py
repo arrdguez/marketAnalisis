@@ -95,7 +95,7 @@ class tradeSigns():
              printAllDataFrame: bool = True,
                        restart:bool = True, 
                          limit:int = 1000,
-                      position:str = 'short',
+                      position:str = 'closefirst',
                       strategy:str = None,
                       fromFile:str = False,
                          param:dict = {}):
@@ -146,7 +146,15 @@ class tradeSigns():
       resume = result[1]
       backtestDetail = result[2]
       temporalDict = result[3]
-      print(result[2])    
+      print(result[2])
+    elif position == 'closefirst':
+      result = self.closeFirst(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
+      df = result[0]
+      resume = result[1]
+      backtestDetail = result[2]
+      temporalDict = result[3]
+      print(result[2])
+
     exit()
 
 
@@ -676,86 +684,6 @@ class tradeSigns():
     self.chart.plotData(df, symbol, timeframe, self.param, self.TLSR)
 
 
-  def short(self, df, symbol, timeframe, restart:bool = True):
-    print('  **  Running short  **')
-    
-    df['trade'] = ''
-    dataTrade = {'initialBalance': 100.0,
-                   'finalBalance'  : 100.0,
-                   'entryPrice'    : 00.0,
-                   'dateEntry'     : '',
-                   'closePrice'    : 00.0,
-                   'dateClose'     : '',
-                   'signalE':'',
-                   'signalC':'',}
-
-    resume = {'symbol'           : '',  # before loop
-                'timeframe'      : '',  # before loop
-                'backTestPeriod' : '',  # before loop
-                'totalProfit'    : 0,   # end loop
-                'totalTrades'    : 0,   # each long&short cycle
-                'initialBalance' : 0,   # end loop
-                'finalBalance'   : 0,   # end loop
-                'longN'          : 0,    # each cycle
-                'longProfit'     : 0,    # each cycle
-                'longMaxP'       : 0,    # end loop
-                'longMinP'       : 0,    # end loop
-                'longMaxPeriod'  : 0,    # end loop
-                'longMinPeriod'  : 0,    # end loop
-                'longCloseBySL'  : 0,    # each cycle
-                'shortN'         : 0,   # each cycle
-                'shortProfit'    : 0,   # each cycle
-                'shortMaxP'      : 0,   # end loop
-                'shortMinP'      : 0,   # end loop
-                'shortMaxPeriod' : 0,   # end loop
-                'shortMinPeriod' : 0,   # end loop
-                'shortCloseBySL' : 0}   # each cycle
-
-    backtestDetail = pd.DataFrame(columns = [  'totalTrades',    #entry all
-                                               'initialBalance', #before loop
-                                               'finalBalance',   #close all
-                                               'entryPrice',     #entry all
-                                               'closePrice',     #close all
-                                               'percent',        #close all
-                                               'dateEntry',      #entry all
-                                               'dateClose',      #close all
-                                               'long',           #entry long
-                                               'short',          #entry long
-                                               'stopLoss',       #close all
-                                               'signalEntry',    #entry all
-                                               'signalClose',    #close all
-                                               'profit',
-                                               'period'])        #close all
-
-    temporalDict = {  'totalTrades' : '',
-                      'initialBalance' : '',
-                      'finalBalance' : '',
-                      'entryPrice' : '',
-                      'closePrice' : '',
-                      'percent' : '',
-                      'dateEntry' : '',
-                      'dateClose' : '',
-                      'long' : '',
-                      'short' : '',
-                      'stopLoss' : '',
-                      'signalEntry' : '',
-                      'signalClose' : '',
-                      'period' : ''}
-
-    #BackTesting Loop
-    resume['symbol'] = symbol
-    resume['timeframe'] = timeframe
-    resume['backTestPeriod'] = (df['date'].iloc[-1]) - (df['date'].iloc[0])
-    resume['backTestPeriod'] = str((resume['backTestPeriod'].seconds/60)/24)+' days'
-    backtestDetail['initialBalance'] = 100
-    entryLong = 'off'
-    entryShort = 'off'
-  
-    
-
-
-    return df,resume, backtestDetail, temporalDict
-
   def long(self, df, symbol, timeframe, restart:bool = True):
     print('  **  Running long  **')
     
@@ -924,6 +852,460 @@ class tradeSigns():
 
         df.loc[i, ('trade')] = 'closeLongBySL'
         
+    return df,resume, backtestDetail, temporalDict
+
+  def short(self, df, symbol, timeframe, restart:bool = True):
+    print('  **  Running short  **')
+    
+    df['trade'] = ''
+    dataTrade = {'initialBalance': 100.0,
+                   'finalBalance'  : 100.0,
+                   'entryPrice'    : 00.0,
+                   'dateEntry'     : '',
+                   'closePrice'    : 00.0,
+                   'dateClose'     : '',
+                   'signalE':'',
+                   'signalC':'',}
+
+    resume = {'symbol'           : '',  # before loop
+                'timeframe'      : '',  # before loop
+                'backTestPeriod' : '',  # before loop
+                'totalProfit'    : 0,   # end loop
+                'totalTrades'    : 0,   # each long&short cycle
+                'initialBalance' : 0,   # end loop
+                'finalBalance'   : 0,   # end loop
+                'longN'          : 0,    # each cycle
+                'longProfit'     : 0,    # each cycle
+                'longMaxP'       : 0,    # end loop
+                'longMinP'       : 0,    # end loop
+                'longMaxPeriod'  : 0,    # end loop
+                'longMinPeriod'  : 0,    # end loop
+                'longCloseBySL'  : 0,    # each cycle
+                'shortN'         : 0,   # each cycle
+                'shortProfit'    : 0,   # each cycle
+                'shortMaxP'      : 0,   # end loop
+                'shortMinP'      : 0,   # end loop
+                'shortMaxPeriod' : 0,   # end loop
+                'shortMinPeriod' : 0,   # end loop
+                'shortCloseBySL' : 0}   # each cycle
+
+    backtestDetail = pd.DataFrame(columns = [  'totalTrades',    #entry all
+                                               'initialBalance', #before loop
+                                               'finalBalance',   #close all
+                                               'entryPrice',     #entry all
+                                               'closePrice',     #close all
+                                               'percent',        #close all
+                                               'dateEntry',      #entry all
+                                               'dateClose',      #close all
+                                               'long',           #entry long
+                                               'short',          #entry long
+                                               'stopLoss',       #close all
+                                               'signalEntry',    #entry all
+                                               'signalClose',    #close all
+                                               'profit',
+                                               'period'])        #close all
+
+    temporalDict = {  'totalTrades' : '',
+                      'initialBalance' : '',
+                      'finalBalance' : '',
+                      'entryPrice' : '',
+                      'closePrice' : '',
+                      'percent' : '',
+                      'dateEntry' : '',
+                      'dateClose' : '',
+                      'long' : '',
+                      'short' : '',
+                      'stopLoss' : '',
+                      'signalEntry' : '',
+                      'signalClose' : '',
+                      'period' : ''}
+
+    #BackTesting Loop
+    resume['symbol'] = symbol
+    resume['timeframe'] = timeframe
+    resume['backTestPeriod'] = (df['date'].iloc[-1]) - (df['date'].iloc[0])
+    resume['backTestPeriod'] = str((resume['backTestPeriod'].seconds/60)/24)+' days'
+    backtestDetail['initialBalance'] = 100
+    entryLong = 'off'
+    entryShort = 'off'
+  
+    for i in range(0, len(df['close'])):
+
+      #Take short position
+      if df['ShortSignals'][i] == 'short' and entryLong == 'off' and entryShort == 'off':
+        
+        entryShort = 'on'
+        dataTrade['entryPrice'] = df['close'][i]
+        dataTrade['dateEntry'] = df['date'][i]
+        dataTrade['signalE'] = df['ShortSignals'][i]
+
+        resume['totalTrades'] += 1
+        resume['shortN'] += 1
+
+        temporalDict['totalTrades']  = resume['totalTrades']
+        temporalDict['entryPrice']   = dataTrade['entryPrice']
+        temporalDict['dateEntry']    = dataTrade['dateEntry']
+        temporalDict['long']         = False
+        temporalDict['short']        = True
+        temporalDict['signalEntry']  = df['ShortSignals'][i]
+        backtestDetail = backtestDetail.append(temporalDict, ignore_index=True, sort=False)
+        df.loc[i, ('trade')] = 'openShort'
+
+      #Close short position
+      elif df['ShortSignals'].iloc[i] == 'closeShort' and entryShort == 'on':
+        
+        entryShort = 'off'
+        percent   = -1 * (((df['close'].iloc[i]/dataTrade['entryPrice']) * 100) - 100)
+
+        if restart:
+          profit = (dataTrade['initialBalance'] * percent) / 100
+        else:
+          profit = (dataTrade['finalBalance'] * percent) / 100
+
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['ShortSignals'][i]
+        
+        resume['shortProfit'] += profit
+
+        
+        
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("closePrice")]   = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("percent")]      = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("dateClose")]    = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('stopLoss')]     = False
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('profit')]       = tradeSigns.truncate(profit, 2)
+
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days <= 0:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('signalClose')]  = df['ShortSignals'][i]
+
+        df.loc[i, ('trade')] = 'closeShort'
+
+      #Close long position by stop loss
+      elif df['ShortSignals'].iloc[i] == 'closeShortSL' and entryShort == 'on':
+        
+        entryShort = 'off'
+
+        percent = -1 * (((df['close'].iloc[i]/dataTrade['entryPrice']) * 100) - 100)
+        percent = tradeSigns.truncate(percent, 3)
+        if restart:
+          profit = tradeSigns.truncate((dataTrade['initialBalance'] * percent) / 100, 3)
+        else:
+          profit = tradeSigns.truncate((dataTrade['finalBalance'] * percent) / 100, 3)
+        dataTrade['finalBalance'] += profit
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['ShortSignals'][i]
+
+        resume['shortCloseBySL'] += 1
+        resume['shortProfit'] += profit
+
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("closePrice")]   = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("percent")]      = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("dateClose")]    = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('stopLoss')]     = True
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]  = df['ShortSignals'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('profit')]       = tradeSigns.truncate(profit, 2)
+
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days <= 0:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]  = df['ShortSignals'][i]
+
+        df.loc[i, ('trade')] = 'closeShortBySL'
+
+
+
+    return df,resume, backtestDetail, temporalDict
+
+  def closeFirst(self, df, symbol, timeframe, restart:bool = True):
+    print('  **  Running long and short, closing first the opened trade   **')
+    
+    df['trade'] = ''
+    dataTrade = {'initialBalance'  : 100.0,
+                   'finalBalance'  : 100.0,
+                   'entryPrice'    : 00.0,
+                   'dateEntry'     : '',
+                   'closePrice'    : 00.0,
+                   'dateClose'     : '',
+                   'signalE':'',
+                   'signalC':'',}
+
+    resume = {'symbol'           : '',  # before loop
+                'timeframe'      : '',  # before loop
+                'backTestPeriod' : '',  # before loop
+                'totalProfit'    : 0,   # end loop
+                'totalTrades'    : 0,   # each long&short cycle
+                'initialBalance' : 0,   # end loop
+                'finalBalance'   : 0,   # end loop
+                'longN'          : 0,    # each cycle
+                'longProfit'     : 0,    # each cycle
+                'longMaxP'       : 0,    # end loop
+                'longMinP'       : 0,    # end loop
+                'longMaxPeriod'  : 0,    # end loop
+                'longMinPeriod'  : 0,    # end loop
+                'longCloseBySL'  : 0,    # each cycle
+                'shortN'         : 0,   # each cycle
+                'shortProfit'    : 0,   # each cycle
+                'shortMaxP'      : 0,   # end loop
+                'shortMinP'      : 0,   # end loop
+                'shortMaxPeriod' : 0,   # end loop
+                'shortMinPeriod' : 0,   # end loop
+                'shortCloseBySL' : 0}   # each cycle
+
+    backtestDetail = pd.DataFrame(columns = [  'totalTrades',    #entry all
+                                               'initialBalance', #before loop
+                                               'finalBalance',   #close all
+                                               'entryPrice',     #entry all
+                                               'closePrice',     #close all
+                                               'percent',        #close all
+                                               'dateEntry',      #entry all
+                                               'dateClose',      #close all
+                                               'long',           #entry long
+                                               'short',          #entry long
+                                               'stopLoss',       #close all
+                                               'signalEntry',    #entry all
+                                               'signalClose',    #close all
+                                               'profit',
+                                               'period'])        #close all
+
+    temporalDict = {  'totalTrades' : '',
+                      'initialBalance' : '',
+                      'finalBalance' : '',
+                      'entryPrice' : '',
+                      'closePrice' : '',
+                      'percent' : '',
+                      'dateEntry' : '',
+                      'dateClose' : '',
+                      'long' : '',
+                      'short' : '',
+                      'stopLoss' : '',
+                      'signalEntry' : '',
+                      'signalClose' : '',
+                      'period' : ''}
+
+    #BackTesting Loop
+    resume['symbol'] = symbol
+    resume['timeframe'] = timeframe
+    resume['backTestPeriod'] = (df['date'].iloc[-1]) - (df['date'].iloc[0])
+    resume['backTestPeriod'] = str((resume['backTestPeriod'].seconds/60)/24)+' days'
+    backtestDetail['initialBalance'] = 100
+    entryLong = 'off'
+    entryShort = 'off'
+
+    for i in range(0, len(df['close'])):
+
+
+
+      #Take long position
+      if df['LongSignals'][i] == 'long' and entryLong == 'off' and entryShort == 'off':
+
+        entryLong = 'on'
+        dataTrade['entryPrice'] = df['close'][i]
+        dataTrade['dateEntry'] = df['date'][i]
+        dataTrade['signalE'] = df['LongSignals'][i]
+        resume['totalTrades'] += 1
+        resume['longN'] += 1
+        temporalDict['totalTrades']  = resume['totalTrades']
+        temporalDict['entryPrice']   = dataTrade['entryPrice']
+        temporalDict['dateEntry']    = dataTrade['dateEntry']
+        temporalDict['long']         = True
+        temporalDict['short']        = False
+        temporalDict['signalEntry']  = df['LongSignals'][i]
+        backtestDetail = backtestDetail.append(temporalDict, ignore_index=True, sort=False)
+        #df['trade'].iloc[i] = 'openLong'
+        df.loc[i, ('trade')] = 'openLong'
+
+      #Close long position
+      elif df['LongSignals'].iloc[i] == 'closeLong' and entryLong == 'on':
+
+        entryLong = 'off'
+        percent   = ((df['close'].iloc[i]/dataTrade['entryPrice']) * 100) - 100
+
+        if restart:
+          profit = (dataTrade['initialBalance'] * percent) / 100
+        else:
+          profit = (dataTrade['finalBalance'] * percent) / 100
+
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['LongSignals'][i]
+
+        resume['longProfit'] += profit
+
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("closePrice")]   = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("percent")]      = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("dateClose")]    = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('stopLoss')]     = False
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('profit')]       = tradeSigns.truncate(profit, 2)
+
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days == 0:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]  = df['LongSignals'][i]
+
+        df.loc[i, ('trade')] = 'closeLong'
+
+      #Close long position by stop loss
+      elif df['LongSignals'].iloc[i] == 'closeLongSL' and entryLong == 'on':
+        
+        entryLong = 'off'
+        percent   = ((df.loc[i, ('close')]/dataTrade['entryPrice']) * 100) - 100
+        if restart:
+          profit = (dataTrade['initialBalance'] * percent) / 100
+        else:
+          profit = (dataTrade['finalBalance'] * percent) / 100
+
+        dataTrade['finalBalance'] += profit
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['LongSignals'][i]
+
+        resume['longCloseBySL'] += 1
+        resume['longProfit'] += profit
+
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('finalBalance')]  = tradeSigns.truncate(dataTrade['finalBalance'], 2) 
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('closePrice')]    = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('percent')]       = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('dateClose')]     = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('stopLoss')]      = True
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('profit')]        = tradeSigns.truncate(profit, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]        = backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]   = df['LongSignals'][i]
+        
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days == 0:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')] = df['LongSignals'][i]
+
+        df.loc[i, ('trade')] = 'closeLongBySL'
+
+
+
+
+      #Take short position
+      if df['ShortSignals'][i] == 'short' and entryLong == 'off' and entryShort == 'off':
+        
+        entryShort = 'on'
+        dataTrade['entryPrice'] = df['close'][i]
+        dataTrade['dateEntry'] = df['date'][i]
+        dataTrade['signalE'] = df['ShortSignals'][i]
+
+        resume['totalTrades'] += 1
+        resume['shortN'] += 1
+
+        temporalDict['totalTrades']  = resume['totalTrades']
+        temporalDict['entryPrice']   = dataTrade['entryPrice']
+        temporalDict['dateEntry']    = dataTrade['dateEntry']
+        temporalDict['long']         = False
+        temporalDict['short']        = True
+        temporalDict['signalEntry']  = df['ShortSignals'][i]
+        backtestDetail = backtestDetail.append(temporalDict, ignore_index=True, sort=False)
+        df.loc[i, ('trade')] = 'openShort'
+
+      #Close short position
+      elif df['ShortSignals'].iloc[i] == 'closeShort' and entryShort == 'on':
+        
+        entryShort = 'off'
+        percent   = -1 * (((df['close'].iloc[i]/dataTrade['entryPrice']) * 100) - 100)
+
+        if restart:
+          profit = (dataTrade['initialBalance'] * percent) / 100
+        else:
+          profit = (dataTrade['finalBalance'] * percent) / 100
+
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['ShortSignals'][i]
+        
+        resume['shortProfit'] += profit
+
+        #backtestDetail['finalBalance'].iloc[-1] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        #backtestDetail.loc[-1, ('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        #backtestDetail["closePrice"].iloc[-1]   = df['close'][i]
+        #backtestDetail.loc[-1, ("closePrice")]   = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("closePrice")]   = df['close'][i]
+        #backtestDetail["percent"].iloc[-1]      = tradeSigns.truncate(percent, 2)
+        #backtestDetail.loc[-1, ("percent")]      = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("percent")]      = tradeSigns.truncate(percent, 2)
+        #backtestDetail["dateClose"].iloc[-1]    = df['date'][i]
+        #backtestDetail.loc[-1, ("dateClose")]    = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ("dateClose")]    = df['date'][i]
+        #backtestDetail['stopLoss'].iloc[-1]     = False
+        #backtestDetail.loc[-1, ('stopLoss')]     = False
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('stopLoss')]     = False
+        #backtestDetail['profit'].iloc[-1]       = tradeSigns.truncate(profit, 2)
+        #backtestDetail.loc[-1, ('profit')]       = tradeSigns.truncate(profit, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('profit')]       = tradeSigns.truncate(profit, 2)
+
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days <= 0:
+          #backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+          #backtestDetail.loc[-1, ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          #backtestDetail['period'].iloc[-1]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+          #backtestDetail.loc[-1, ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        #backtestDetail['signalClose'].iloc[-1]  = df['ShortSignals'][i]
+        #backtestDetail.loc[-1, ('signalClose')]  = df['ShortSignals'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc ('signalClose')]  = df['ShortSignals'][i]
+
+        #df['trade'].iloc[i] = 'e'
+        df.loc[i, ('trade')] = 'closeShort'
+
+      #Close long position by stop loss
+      elif df['ShortSignals'].iloc[i] == 'closeShortSL' and entryShort == 'on':
+        
+        entryShort = 'off'
+
+        percent = -1 * (((df['close'].iloc[i]/dataTrade['entryPrice']) * 100) - 100)
+        percent = tradeSigns.truncate(percent, 3)
+        if restart:
+          profit = tradeSigns.truncate((dataTrade['initialBalance'] * percent) / 100, 3)
+        else:
+          profit = tradeSigns.truncate((dataTrade['finalBalance'] * percent) / 100, 3)
+        dataTrade['finalBalance'] += profit
+        dataTrade['finalBalance'] += profit
+        dataTrade['closePrice']   = df['close'][i]
+        dataTrade['dateClose']    = df['date'][i]
+        dataTrade['signalC']      = df['ShortSignals'][i]
+
+        resume['shortCloseBySL'] += 1
+        resume['shortProfit'] += profit
+
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('finalBalance')] = tradeSigns.truncate(dataTrade['finalBalance'], 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("closePrice")]   = df['close'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("percent")]      = tradeSigns.truncate(percent, 2)
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc("dateClose")]    = df['date'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('stopLoss')]     = True
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]  = df['ShortSignals'][i]
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('profit')]       = tradeSigns.truncate(profit, 2)
+
+        if (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days <= 0:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).seconds/60
+        else:
+          backtestDetail.iloc[-1, backtestDetail.columns.get_loc('period')]       = (backtestDetail['dateClose'].iloc[-1] - backtestDetail['dateEntry'].iloc[-1]).days
+        backtestDetail.iloc[-1, backtestDetail.columns.get_loc('signalClose')]  = df['ShortSignals'][i]
+
+        df.loc[i, ('trade')] = 'closeShortBySL'
+
     return df,resume, backtestDetail, temporalDict
 
 
