@@ -95,7 +95,97 @@ class Strategies:
     print('\n  **  Evaluating SSL+200EMA strategy  **')
 
     df = Strategies.SSL(df,emalength = emalength, smalength = smalength)
-    print('  **  The strategy was evaluated  **')
+    print('  **  The SSL was evaluated  **')
+    df['trend'] = ''
+    df['LongSignals'] = ''
+    df['ShortSignals'] = ''
+    df['StopLossPrice'] = 0.0
+    #inTheMarket = False
+    insideMarketShort = False
+    insideMarketLong = False
+    longSL = 0.0
+    longOpenPrice = 0.0
+    shortSL = 0.0
+    shortOpenPrice = 0.0
+
+    for i in range(0, len(df['close'])):
+      #print(i)
+
+      if df['200_ema'].iloc[i] < df['close'][i]:
+        df.loc[i, ('trend')] = 'bullish'
+      elif df['200_ema'].iloc[i] > df['close'][i]:
+        df.loc[i, ('trend')] = 'bearish'
+
+      #Taking profit of the long position
+      if insideMarketLong and df['sslUp'][i] < df['sslDown'][i] and df['close'][i] > longOpenPrice:
+        df.loc[i, ('LongSignals')] = 'closeLong'
+        insideMarketLong = False
+        longOpenPrice = 0.0
+        longSL = 0.0
+
+      #Taking profit of the short position
+      if insideMarketShort and df['sslUp'][i] > df['sslDown'][i] and df['close'][i] < shortOpenPrice :
+        df.loc[i, ('ShortSignals')] = 'closeShort'
+        insideMarketShort = False
+        shortOpenPrice = 0.0
+        shortSL = 0.0
+
+      if insideMarketLong and df['low'][i] <= longSL:
+        df.loc[i, ('LongSignals')] = 'closeLongSL'
+        insideMarketLong = False
+        longOpenPrice = 0.0
+        longSL = 0.0
+
+      if insideMarketShort and df['high'][i] >= shortSL:
+        df.loc[i, ('ShortSignals')] = 'closeShortSL'
+        insideMarketShort = False
+        shortOpenPrice = 0.0
+        shortSL = 0.0
+
+      #long entry
+      if df['trend'].iloc[i] == 'bullish' and df['sslUp'][i] > df['sslDown'][i] is not insideMarketLong and df['sslUp'][i-1] < df['sslDown'][i-1]:
+        df.loc[i, ('LongSignals')] = 'long'
+        longOpenPrice = df['close'][i]
+        insideMarketLong = True
+        longSL = df['sslDown'][i]
+        df.loc[i, ('StopLossPrice')] = longSL
+
+      #short entry
+      elif df['trend'].iloc[i] == 'bearish' and df['sslUp'][i] < df['sslDown'][i] is not insideMarketShort and df['sslUp'][i-1] > df['sslDown'][i-1]:
+        df.loc[i, ('ShortSignals')] = 'short'
+        shortOpenPrice = df['close'][i]
+        insideMarketShort = True
+        shortSL = df['sslDown'][i]
+        df.loc[i, ('StopLossPrice')] = shortSL
+
+
+      #if df['signal'][i] == '':
+      #  df['signal'].iloc[i] = ' '
+
+    print('  **  The evaluation was finish successfully   **')
+    df = df.drop(columns=['Hlv', 'smaHigh', 'smaLow', 'trend'])
+    
+    return df
+
+
+  def SMIHStrategy(self, df):
+    print('\n  **  Evaluating Squeeze Momentum Indicator Strategy of Trading Latino **')
+
+    #EMA
+    df['10_ema'] = TA.EMA(df, 10)
+    df['55_ema'] = TA.EMA(df, 55)
+
+
+    #ADX
+    df["ADX"] = self.SMIH.ADX(df)
+    df["ADX"] = df["ADX"].fillna(0)
+    df = df.drop(columns=['plus','minus','sum','tmp', 'up', 'down', 'TR', 'truerange'])
+
+
+    #QMI
+    df['SMIH'] = self.SMIH.SMIH(df)
+
+
     df['trend'] = ''
     df['LongSignals'] = ''
     df['ShortSignals'] = ''

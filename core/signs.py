@@ -37,7 +37,7 @@ class tradeSigns():
              printAllDataFrame: bool = True,
                        restart:bool = True, 
                          limit:int = 1000,
-                      position:str = 'short',
+                      position:str = 'long',
                       strategy:str = None,
                       fromFile:str = False,
                          param:dict = {}):
@@ -62,9 +62,7 @@ class tradeSigns():
           print(tmpString[tmpString.find('/')+1:tmpString.find('_')])
           df = pd.read_csv(x, sep = '\t')
           df['date'] = pd.to_datetime(df['date'])
- 
-          #print(df)
-          #exit()
+
          
     else:
       print('The data will by obtain from Binance')
@@ -126,8 +124,29 @@ class tradeSigns():
                     dataTrade = dataTrade,
                      position = 'long')
     elif position == 'both':
+      df['trade'] = ''
       longResult  = self.long(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
-      shortResult = self.short(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
+      df             = longResult[0]
+      dataTrade      = longResult[1]
+      resume         = longResult[2]
+      backtestDetail = longResult[3]
+      temporalDict   = longResult[4]
+      shortResult    = self.short(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
+
+
+      backtestDetail = backtestDetail.append(shortResult[3])
+      resume['shortN']         = shortResult[2]['shortN']
+      resume['shortProfit']    = shortResult[2]['shortProfit']
+      resume['shortMaxP']      = shortResult[2]['shortMaxP']
+      resume['shortMinP']      = shortResult[2]['shortMinP']
+      resume['shortMaxPeriod'] = shortResult[2]['shortMaxPeriod']
+      resume['shortMinPeriod'] = shortResult[2]['shortMinPeriod']
+      resume['shortCloseBySL'] = shortResult[2]['shortCloseBySL']
+      resume['finalBalanceLong']  = dataTrade['finalBalance']
+      resume['finalBalanceShort'] = shortResult[1]['finalBalance']
+      #print(longResult[4])
+      #print(resume)
+      #exit()
       if btd:
         self.ResumeCreator(df = df , 
                        symbol = symbol, 
@@ -137,7 +156,6 @@ class tradeSigns():
                backtestDetail = backtestDetail, 
                     dataTrade = dataTrade,
                      position = 'both')
-    
 
 
     self.chart.plotEachTrade(df = df, symbol = symbol, timeframe = timeframe)
@@ -326,29 +344,27 @@ class tradeSigns():
         f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
         f.write('\n')
         f.write('\n#-------------- LONG ----------------')
-        f.write('\n#TOTAL LONG:        ' + str(resume['longN']))
-        f.write('\n#LONG CLOSED BY SL: ' + str(resume['longCloseBySL']))
-        f.write('\n#LONG PROFIT:       ' + str(resume['longProfit']))
-        f.write('\n#MAX LONG PROFIT:   ' + str(resume['longMaxP']))
-        f.write('\n#MIN LONG PROFIT:   ' + str(resume['longMinP']))
-        f.write('\n#MAX DURATION LONG: ' + str(resume['longMaxPeriod']))
-        f.write('\n#MIN DURATION LONG: ' + str(resume['longMinPeriod']))
+        f.write('\n#FINAL BALANCE (LONG): ' + str(resume['finalBalanceLong']))
+        f.write('\n#TOTAL LONG:           ' + str(resume['longN']))
+        f.write('\n#LONG CLOSED BY SL:    ' + str(resume['longCloseBySL']))
+        f.write('\n#LONG PROFIT:          ' + str(resume['longProfit']))
+        f.write('\n#MAX LONG PROFIT:      ' + str(resume['longMaxP']))
+        f.write('\n#MIN LONG PROFIT:      ' + str(resume['longMinP']))
+        f.write('\n#MAX DURATION LONG:    ' + str(resume['longMaxPeriod']))
+        f.write('\n#MIN DURATION LONG:    ' + str(resume['longMinPeriod']))
         f.write('\n')
         f.write('\n#-------------- SHORT ----------------')
-        f.write('\n#TOTAL SHORT:        ' + str(resume['shortN']))
-        f.write('\n#SHORT CLOSED BY SL: ' + str(resume['shortCloseBySL']))
-        f.write('\n#SHORT PROFIT:       ' + str(resume['shortProfit']))
-        f.write('\n#MAX SHORT PROFIT:   ' + str(resume['shortMaxP']))
-        f.write('\n#MIN SHORT PROFIT:   ' + str(resume['shortMinP']))
-        f.write('\n#MAX DURATION SHORT: ' + str(resume['shortMaxPeriod']))
-        f.write('\n#MIN DURATION SHORT: ' + str(resume['shortMinPeriod']))
+        f.write('\n#FINAL BALANCE (SHORT): ' + str(resume['finalBalanceShort']))
+        f.write('\n#TOTAL SHORT:           ' + str(resume['shortN']))
+        f.write('\n#SHORT CLOSED BY SL:    ' + str(resume['shortCloseBySL']))
+        f.write('\n#SHORT PROFIT:          ' + str(resume['shortProfit']))
+        f.write('\n#MAX SHORT PROFIT:      ' + str(resume['shortMaxP']))
+        f.write('\n#MIN SHORT PROFIT:      ' + str(resume['shortMinP']))
+        f.write('\n#MAX DURATION SHORT:    ' + str(resume['shortMaxPeriod']))
+        f.write('\n#MIN DURATION SHORT:    ' + str(resume['shortMinPeriod']))
         f.write('\n')
         f.write('\n')
         f.write('\n#--------- STRATEGY PARAMETERS -------')
-        #f.write('\n#SMA:            '+ str(smaL))
-        #f.write('\n#EMA:            '+ str(emalength))
-        #f.write('\n#LENGTH OF DATA: '+ str(limit))
-        #f.write('\n#RESTART:        '+ str(restart))
         f.write('\n')
         f.write('\n#DATA FRAME')
         f.write('\n')
@@ -448,7 +464,7 @@ class tradeSigns():
   def long(self, df, symbol, timeframe, restart:bool = True):
     print('  **  Running long  **')
     
-    df['trade'] = ''
+    
     dataTrade = {'initialBalance'  : 100.0,
                    'finalBalance'  : 100.0,
                    'entryPrice'    : 00.0,
@@ -637,8 +653,7 @@ class tradeSigns():
 
   def short(self, df, symbol, timeframe, restart:bool = True):
     print('  **  Running short  **')
-    
-    df['trade'] = ''
+
     dataTrade = {  'initialBalance': 100.0,
                    'finalBalance'  : 100.0,
                    'entryPrice'    : 00.0,
@@ -830,8 +845,7 @@ class tradeSigns():
 
   def closeFirst(self, df, symbol, timeframe, restart:bool = True):
     print('  **  Running long and short, closing first the opened trade   **')
-    
-    df['trade'] = ''
+
     dataTrade = {'initialBalance'  : 100.0,
                    'finalBalance'  : 100.0,
                    'entryPrice'    : 00.0,
