@@ -31,16 +31,13 @@ class tradeSigns():
 
   def backtesting(self, symbol:str, 
                      timeframe:str, 
-                          smaL:int = 8, 
-                     emalength:int = 200,
+                            df:pd.DataFrame,
                            btd:bool = True,
              printAllDataFrame: bool = True,
                        restart:bool = True, 
-                         limit:int = 1000,
-                      position:str = 'long',
+                      position:str = 'both',
                       strategy:str = None,
-                      fromFile:str = False,
-                         param:dict = {}):
+                      extraName:str = None):
     """
       position : long/short/closefirst/both/
     """
@@ -49,27 +46,9 @@ class tradeSigns():
       #exit()
     else:
       print('The strategy '+strategy+' will be test with the next specification:')
-    
-    if fromFile:
-      print('The data is obtain from local directory.')
-      list_of_files = glob.glob('/home/rfeynman/Dropbox/src/BinanceDB/*.csv')
-      df = pd.DataFrame()  
 
-      for x in list_of_files:
-        tmpString = x[list_of_files[0].find('_')-9:]
-        if tmpString[tmpString.find('_')+1:tmpString.find('.')] == timeframe and tmpString[tmpString.find('/')+1:tmpString.find('_')] == symbol:
-          print(tmpString[tmpString.find('_')+1:tmpString.find('.')])
-          print(tmpString[tmpString.find('/')+1:tmpString.find('_')])
-          df = pd.read_csv(x, sep = '\t')
-          df['date'] = pd.to_datetime(df['date'])
 
-         
-    else:
-      print('The data will by obtain from Binance')
-      df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = limit)
-    backTestStrategy = Strategies()
 
-    df = backTestStrategy.SslEMA(df, emalength = emalength, smalength = smaL)
     
     print('  **  Back-testing in progress  ** ')
     #df, dataTrade, resume, backtestDetail, temporalDict
@@ -148,7 +127,8 @@ class tradeSigns():
       #print(resume)
       #exit()
       if btd:
-        self.ResumeCreator(df = df , 
+        self.ResumeCreator(df = df, 
+                    extraName = extraName,
                        symbol = symbol, 
                     timeframe = timeframe,
             printAllDataFrame = printAllDataFrame, 
@@ -161,230 +141,62 @@ class tradeSigns():
     self.chart.plotEachTrade(df = df, symbol = symbol, timeframe = timeframe)
     return resume
 
-  def ResumeCreator(self, df, backtestDetail:dict, dataTrade:dict,  resume:dict,symbol, timeframe, position, printAllDataFrame: bool = True ):
+  def ParameterStrategiesEvaluator(self, symbol:str = 'BTCUSDT', timeframe:str = '30m'):
 
-    if position == 'long':
-      filename = './BTResults/BackTestDetailLong_'+symbol+'_'+str(timeframe)+'.resume'
+    BackTestResume = pd.DataFrame(columns = ['symbol',
+                                             'timeframe',
+                                             'backTestPeriod',
+                                             'totalProfit',
+                                             'totalTrades',
+                                             'initialBalance',
+                                             'finalBalance',
+                                             'longN',
+                                             'longProfit',
+                                             'longMaxP',
+                                             'longMinP',
+                                             'longMaxPeriod',
+                                             'longMinPeriod',
+                                             'longCloseBySL',
+                                             'shortN',
+                                             'shortProfit',
+                                             'shortMaxP',
+                                             'shortMinP',
+                                             'shortMaxPeriod',
+                                             'shortMinPeriod',
+                                             'shortCloseBySL',])
+
+
+    print(symbol)
+    print(timeframe)
+    df = self.GetTickers(symbol = symbol, timeframe = timeframe, limit = 500, fromFile = False)
+    backTestStrategy = Strategies()
+    parameters = backTestStrategy.SslEMA(df, paramevaluation = True)
+    smalength = parameters[0]
+    emalength = parameters[1]
+
+
+    for x in smalength:
+      for y in emalength:
+        pieceOfName = '_SMA'+str(x)+'_EMA'+str(y)
+        dft = backTestStrategy.SslEMA(df, emalength = y, smalength = x)
+        result = self.backtesting(symbol, timeframe, df = dft, extraName = pieceOfName)
+        BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
+
     
-      with open(filename, 'w') as f:
-        f.write('#Details of the back test of the strategy.')
-        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
-        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#-------------- RESUME --------------')
-        f.write('\n#               DATE')
-        f.write('\n#SYMBOL:            ' + resume['symbol'])
-        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
-        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
-        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
-        f.write('\n')
-        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
-        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
-        f.write('\n')
-        f.write('\n#-------------- LONG ----------------')
-        f.write('\n#TOTAL LONG:        ' + str(resume['longN']))
-        f.write('\n#LONG CLOSED BY SL: ' + str(resume['longCloseBySL']))
-        f.write('\n#LONG PROFIT:       ' + str(resume['longProfit']))
-        f.write('\n#MAX LONG PROFIT:   ' + str(resume['longMaxP']))
-        f.write('\n#MIN LONG PROFIT:   ' + str(resume['longMinP']))
-        f.write('\n#MAX DURATION LONG: ' + str(resume['longMaxPeriod']))
-        f.write('\n#MIN DURATION LONG: ' + str(resume['longMinPeriod']))
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#--------- STRATEGY PARAMETERS -------')
-        #f.write('\n#SMA:            '+ str(smaL))
-        #f.write('\n#EMA:            '+ str(emalength))
-        #f.write('\n#LENGTH OF DATA: '+ str(limit))
-        #f.write('\n#RESTART:        '+ str(restart))
-        f.write('\n')
-        f.write('\n#DATA FRAME')
-        f.write('\n')
-        f.write('\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(backtestDetail.to_string())
-      pfile.close()
-
-      if printAllDataFrame: 
-        with open(filename, 'a') as f:
-          f.write('\n\n**   FULL DATA ***\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(df.to_string())
-      pfile.close()
-    elif position == 'short':
-      filename = './BTResults/BackTestDetailShort_'+symbol+'_'+str(timeframe)+'.resume'
+    filename = './BTResults/BackTestDetail.dat'
+    with open(filename, 'w') as f:
+      f.write('#Result of the back testing for some symbols, timeframes, parameters.')
+      f.write('\n')
+      f.write('\n')
     
-      with open(filename, 'w') as f:
-        f.write('#Details of the back test of the strategy.')
-        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
-        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#-------------- RESUME --------------')
-        f.write('\n#               DATE')
-        f.write('\n#SYMBOL:            ' + resume['symbol'])
-        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
-        f.write('\n#POSITION:          ' + 'SHORT')
-        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
-        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
-        f.write('\n')
-        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
-        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
-        f.write('\n')
-        f.write('\n#-------------- SHORT ----------------')
-        f.write('\n#TOTAL SHORT:        ' + str(resume['shortN']))
-        f.write('\n#SHORT CLOSED BY SL: ' + str(resume['shortCloseBySL']))
-        f.write('\n#SHORT PROFIT:       ' + str(resume['shortProfit']))
-        f.write('\n#MAX SHORT PROFIT:   ' + str(resume['shortMaxP']))
-        f.write('\n#MIN SHORT PROFIT:   ' + str(resume['shortMinP']))
-        f.write('\n#MAX DURATION SHORT: ' + str(resume['shortMaxPeriod']))
-        f.write('\n#MIN DURATION SHORT: ' + str(resume['shortMinPeriod']))
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#--------- STRATEGY PARAMETERS -------')
-        #f.write('\n#SMA:            '+ str(smaL))
-        #f.write('\n#EMA:            '+ str(emalength))
-        #f.write('\n#LENGTH OF DATA: '+ str(limit))
-        #f.write('\n#RESTART:        '+ str(restart))
-        f.write('\n')
-        f.write('\n#DATA FRAME')
-        f.write('\n')
-        f.write('\n')
 
-      pfile = open(filename, 'a')
-      pfile.write(backtestDetail.to_string())
-      pfile.close()
-
-      if printAllDataFrame: 
-        with open(filename, 'a') as f:
-          f.write('\n\n**   FULL DATA ***\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(df.to_string())
-      pfile.close()
-    elif position == 'closefirst':
-      filename = './BTResults/BackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
     
-      with open(filename, 'w') as f:
-        f.write('#Details of the back test of the strategy.')
-        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
-        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#-------------- RESUME --------------')
-        f.write('\n#               DATE')
-        f.write('\n#SYMBOL:            ' + resume['symbol'])
-        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
-        f.write('\n#POSITION:          ' + 'Long and short but until close previous trade will entry.')
-        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
-        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
-        f.write('\n')
-        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
-        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
-        f.write('\n')
-        f.write('\n#-------------- LONG ----------------')
-        f.write('\n#TOTAL LONG:        ' + str(resume['longN']))
-        f.write('\n#LONG CLOSED BY SL: ' + str(resume['longCloseBySL']))
-        f.write('\n#LONG PROFIT:       ' + str(resume['longProfit']))
-        f.write('\n#MAX LONG PROFIT:   ' + str(resume['longMaxP']))
-        f.write('\n#MIN LONG PROFIT:   ' + str(resume['longMinP']))
-        f.write('\n#MAX DURATION LONG: ' + str(resume['longMaxPeriod']))
-        f.write('\n#MIN DURATION LONG: ' + str(resume['longMinPeriod']))
-        f.write('\n')
-        f.write('\n#-------------- SHORT ----------------')
-        f.write('\n#TOTAL SHORT:        ' + str(resume['shortN']))
-        f.write('\n#SHORT CLOSED BY SL: ' + str(resume['shortCloseBySL']))
-        f.write('\n#SHORT PROFIT:       ' + str(resume['shortProfit']))
-        f.write('\n#MAX SHORT PROFIT:   ' + str(resume['shortMaxP']))
-        f.write('\n#MIN SHORT PROFIT:   ' + str(resume['shortMinP']))
-        f.write('\n#MAX DURATION SHORT: ' + str(resume['shortMaxPeriod']))
-        f.write('\n#MIN DURATION SHORT: ' + str(resume['shortMinPeriod']))
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#--------- STRATEGY PARAMETERS -------')
-        #f.write('\n#SMA:            '+ str(smaL))
-        #f.write('\n#EMA:            '+ str(emalength))
-        #f.write('\n#LENGTH OF DATA: '+ str(limit))
-        #f.write('\n#RESTART:        '+ str(restart))
-        f.write('\n')
-        f.write('\n#DATA FRAME')
-        f.write('\n')
-        f.write('\n')
+    pfile = open(filename, 'a')
+    pfile.write(BackTestResume.to_string())
+    pfile.close()
 
-      pfile = open(filename, 'a')
-      pfile.write(backtestDetail.to_string())
-      pfile.close()
 
-      if printAllDataFrame: 
-        with open(filename, 'a') as f:
-          f.write('\n\n**   FULL DATA ***\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(df.to_string())
-      pfile.close()
-    elif position == 'both':
-      filename = './BTResults/BackTestDetail_'+symbol+'_'+str(timeframe)+'.resume'
-
-      with open(filename, 'w') as f:
-        f.write('#Details of the back test of the strategy.')
-        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
-        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#-------------- RESUME --------------')
-        f.write('\n#               DATE')
-        f.write('\n#SYMBOL:            ' + resume['symbol'])
-        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
-        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
-        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
-        f.write('\n')
-        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
-        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
-        f.write('\n')
-        f.write('\n#-------------- LONG ----------------')
-        f.write('\n#FINAL BALANCE (LONG): ' + str(resume['finalBalanceLong']))
-        f.write('\n#TOTAL LONG:           ' + str(resume['longN']))
-        f.write('\n#LONG CLOSED BY SL:    ' + str(resume['longCloseBySL']))
-        f.write('\n#LONG PROFIT:          ' + str(resume['longProfit']))
-        f.write('\n#MAX LONG PROFIT:      ' + str(resume['longMaxP']))
-        f.write('\n#MIN LONG PROFIT:      ' + str(resume['longMinP']))
-        f.write('\n#MAX DURATION LONG:    ' + str(resume['longMaxPeriod']))
-        f.write('\n#MIN DURATION LONG:    ' + str(resume['longMinPeriod']))
-        f.write('\n')
-        f.write('\n#-------------- SHORT ----------------')
-        f.write('\n#FINAL BALANCE (SHORT): ' + str(resume['finalBalanceShort']))
-        f.write('\n#TOTAL SHORT:           ' + str(resume['shortN']))
-        f.write('\n#SHORT CLOSED BY SL:    ' + str(resume['shortCloseBySL']))
-        f.write('\n#SHORT PROFIT:          ' + str(resume['shortProfit']))
-        f.write('\n#MAX SHORT PROFIT:      ' + str(resume['shortMaxP']))
-        f.write('\n#MIN SHORT PROFIT:      ' + str(resume['shortMinP']))
-        f.write('\n#MAX DURATION SHORT:    ' + str(resume['shortMaxPeriod']))
-        f.write('\n#MIN DURATION SHORT:    ' + str(resume['shortMinPeriod']))
-        f.write('\n')
-        f.write('\n')
-        f.write('\n#--------- STRATEGY PARAMETERS -------')
-        f.write('\n')
-        f.write('\n#DATA FRAME')
-        f.write('\n')
-        f.write('\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(backtestDetail.to_string())
-      pfile.close()
-
-      if printAllDataFrame: 
-        with open(filename, 'a') as f:
-          f.write('\n\n**   FULL DATA ***\n')
-
-      pfile = open(filename, 'a')
-      pfile.write(df.to_string())
-      pfile.close()
-    
-    #backtestDetail.to_csv(filename, sep='\t')
-
-  def BacktestLoop(self):
+  def BacktestLoop(self, symbol:list = ['BTCUSDT'], timeframe:list = ['1m']):
               
 
     
@@ -430,22 +242,20 @@ class tradeSigns():
 
     symbol = ['BTCUSDT']
     timeframe = ['1m']
-    smaL = [10]
-    
+    smaL = 10
 
-
-    #timeframe = ['15m']
-    #smaL = [8]
-    
+    backTestStrategy = Strategies()
     for i in range(len(symbol)):
       for x in range(len(timeframe)):
-        for y in range(len(smaL)):
-          print(symbol[i])
-          print(timeframe[x])
-          result = self.backtesting(symbol[i], timeframe[x], smaL[y], restart = False, limit = 500, fromFile = False, emalength = 200,)
-          #pprint.pprint(result)
-          BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
-          #print(BackTestResume)
+
+        print(symbol[i])
+        print(timeframe[x])
+        df = self.GetTickers(symbol = symbol[i], timeframe = timeframe[x], limit = 500, fromFile = False)
+        df = backTestStrategy.SslEMA(df)
+        result = self.backtesting(symbol[i], timeframe[x], df = df)
+        #pprint.pprint(result)
+        BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
+        #print(BackTestResume)
     
     #change the name of this variable btd = print back test details
     
@@ -460,6 +270,16 @@ class tradeSigns():
     pfile = open(filename, 'a')
     pfile.write(BackTestResume.to_string())
     pfile.close()
+
+  def strategytester(self):
+
+    smaL = [2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    emaL = [50, 100, 150, 200]
+
+
+    for s in range(len(smaL)):
+      for e in range(len(emaL)):
+        pass
 
   def long(self, df, symbol, timeframe, restart:bool = True):
     print('  **  Running long  **')
@@ -1149,6 +969,266 @@ class tradeSigns():
     
     return df, dataTrade, resume, backtestDetail, temporalDict
 
+
+  def ResumeCreator(self, df, backtestDetail:dict, dataTrade:dict,  resume:dict,symbol, timeframe, position, printAllDataFrame: bool = True, extraName:str = None):
+
+    if position == 'long':
+      if extraName != None:
+        filename = './BTResults/BackTestDetailLong_'+symbol+'_'+str(timeframe)+extraName+'.resume'
+      else:
+        filename = './BTResults/BackTestDetailLong_'+symbol+'_'+str(timeframe)+'.resume'
+    
+      with open(filename, 'w') as f:
+        f.write('#Details of the back test of the strategy.')
+        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
+        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#-------------- RESUME --------------')
+        f.write('\n#               DATE')
+        f.write('\n#SYMBOL:            ' + resume['symbol'])
+        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
+        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
+        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
+        f.write('\n')
+        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
+        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
+        f.write('\n')
+        f.write('\n#-------------- LONG ----------------')
+        f.write('\n#TOTAL LONG:        ' + str(resume['longN']))
+        f.write('\n#LONG CLOSED BY SL: ' + str(resume['longCloseBySL']))
+        f.write('\n#LONG PROFIT:       ' + str(resume['longProfit']))
+        f.write('\n#MAX LONG PROFIT:   ' + str(resume['longMaxP']))
+        f.write('\n#MIN LONG PROFIT:   ' + str(resume['longMinP']))
+        f.write('\n#MAX DURATION LONG: ' + str(resume['longMaxPeriod']))
+        f.write('\n#MIN DURATION LONG: ' + str(resume['longMinPeriod']))
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#--------- STRATEGY PARAMETERS -------')
+        #f.write('\n#SMA:            '+ str(smaL))
+        #f.write('\n#EMA:            '+ str(emalength))
+        #f.write('\n#LENGTH OF DATA: '+ str(limit))
+        #f.write('\n#RESTART:        '+ str(restart))
+        f.write('\n')
+        f.write('\n#DATA FRAME')
+        f.write('\n')
+        f.write('\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(backtestDetail.to_string())
+      pfile.close()
+
+      if printAllDataFrame: 
+        with open(filename, 'a') as f:
+          f.write('\n\n**   FULL DATA ***\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(df.to_string())
+      pfile.close()
+    elif position == 'short':
+      if extraName != None:
+        filename = './BTResults/BackTestDetailShort_'+symbol+'_'+str(timeframe)+extraName+'.resume'
+      else:
+        filename = './BTResults/BackTestDetailShort_'+symbol+'_'+str(timeframe)+'.resume'
+      
+    
+      with open(filename, 'w') as f:
+        f.write('#Details of the back test of the strategy.')
+        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
+        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#-------------- RESUME --------------')
+        f.write('\n#               DATE')
+        f.write('\n#SYMBOL:            ' + resume['symbol'])
+        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
+        f.write('\n#POSITION:          ' + 'SHORT')
+        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
+        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
+        f.write('\n')
+        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
+        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
+        f.write('\n')
+        f.write('\n#-------------- SHORT ----------------')
+        f.write('\n#TOTAL SHORT:        ' + str(resume['shortN']))
+        f.write('\n#SHORT CLOSED BY SL: ' + str(resume['shortCloseBySL']))
+        f.write('\n#SHORT PROFIT:       ' + str(resume['shortProfit']))
+        f.write('\n#MAX SHORT PROFIT:   ' + str(resume['shortMaxP']))
+        f.write('\n#MIN SHORT PROFIT:   ' + str(resume['shortMinP']))
+        f.write('\n#MAX DURATION SHORT: ' + str(resume['shortMaxPeriod']))
+        f.write('\n#MIN DURATION SHORT: ' + str(resume['shortMinPeriod']))
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#--------- STRATEGY PARAMETERS -------')
+        #f.write('\n#SMA:            '+ str(smaL))
+        #f.write('\n#EMA:            '+ str(emalength))
+        #f.write('\n#LENGTH OF DATA: '+ str(limit))
+        #f.write('\n#RESTART:        '+ str(restart))
+        f.write('\n')
+        f.write('\n#DATA FRAME')
+        f.write('\n')
+        f.write('\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(backtestDetail.to_string())
+      pfile.close()
+
+      if printAllDataFrame: 
+        with open(filename, 'a') as f:
+          f.write('\n\n**   FULL DATA ***\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(df.to_string())
+      pfile.close()
+    elif position == 'closefirst':
+      if extraName != None:
+        filename = './BTResults/BackTestCloseFirst_'+symbol+'_'+str(timeframe)+extraName+'.resume'
+      else:
+        filename = './BTResults/BackTestCloseFirst_'+symbol+'_'+str(timeframe)+'.resume'
+      
+    
+      with open(filename, 'w') as f:
+        f.write('#Details of the back test of the strategy.')
+        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
+        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#-------------- RESUME --------------')
+        f.write('\n#               DATE')
+        f.write('\n#SYMBOL:            ' + resume['symbol'])
+        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
+        f.write('\n#POSITION:          ' + 'Long and short but until close previous trade will entry.')
+        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
+        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
+        f.write('\n')
+        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
+        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
+        f.write('\n')
+        f.write('\n#-------------- LONG ----------------')
+        f.write('\n#TOTAL LONG:        ' + str(resume['longN']))
+        f.write('\n#LONG CLOSED BY SL: ' + str(resume['longCloseBySL']))
+        f.write('\n#LONG PROFIT:       ' + str(resume['longProfit']))
+        f.write('\n#MAX LONG PROFIT:   ' + str(resume['longMaxP']))
+        f.write('\n#MIN LONG PROFIT:   ' + str(resume['longMinP']))
+        f.write('\n#MAX DURATION LONG: ' + str(resume['longMaxPeriod']))
+        f.write('\n#MIN DURATION LONG: ' + str(resume['longMinPeriod']))
+        f.write('\n')
+        f.write('\n#-------------- SHORT ----------------')
+        f.write('\n#TOTAL SHORT:        ' + str(resume['shortN']))
+        f.write('\n#SHORT CLOSED BY SL: ' + str(resume['shortCloseBySL']))
+        f.write('\n#SHORT PROFIT:       ' + str(resume['shortProfit']))
+        f.write('\n#MAX SHORT PROFIT:   ' + str(resume['shortMaxP']))
+        f.write('\n#MIN SHORT PROFIT:   ' + str(resume['shortMinP']))
+        f.write('\n#MAX DURATION SHORT: ' + str(resume['shortMaxPeriod']))
+        f.write('\n#MIN DURATION SHORT: ' + str(resume['shortMinPeriod']))
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#--------- STRATEGY PARAMETERS -------')
+        #f.write('\n#SMA:            '+ str(smaL))
+        #f.write('\n#EMA:            '+ str(emalength))
+        #f.write('\n#LENGTH OF DATA: '+ str(limit))
+        #f.write('\n#RESTART:        '+ str(restart))
+        f.write('\n')
+        f.write('\n#DATA FRAME')
+        f.write('\n')
+        f.write('\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(backtestDetail.to_string())
+      pfile.close()
+
+      if printAllDataFrame: 
+        with open(filename, 'a') as f:
+          f.write('\n\n**   FULL DATA ***\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(df.to_string())
+      pfile.close()
+    elif position == 'both':
+      if extraName != None:
+        filename = './BTResults/BackTestBoth_'+symbol+'_'+str(timeframe)+extraName+'.resume'
+      else:
+        filename = './BTResults/BackTestBoth_'+symbol+'_'+str(timeframe)+'.resume'
+
+      with open(filename, 'w') as f:
+        f.write('#Details of the back test of the strategy.')
+        f.write('\n#NOTE.1: All notes are write using \'#\' to by consider like comments in case you want to pass this file to gnuplot for example.')
+        f.write('\n#NOTE.2: I am working on  duration period, due to it is not clear if is in minutes or seconds')
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#-------------- RESUME --------------')
+        f.write('\n#               DATE')
+        f.write('\n#SYMBOL:            ' + resume['symbol'])
+        f.write('\n#TIMEFRAME:         ' + resume['timeframe'])
+        f.write('\n#BACK Test PERIODO: ' + str(resume['backTestPeriod']))
+        f.write('\n#FINAL BALANCE:     ' + str(dataTrade['finalBalance']))
+        f.write('\n')
+        f.write('\n#TOTAL PROFIT:      ' + str(resume['totalProfit']))
+        f.write('\n#TOTAL TRADES:      ' + str(resume['totalTrades']))
+        f.write('\n')
+        f.write('\n#-------------- LONG ----------------')
+        f.write('\n#FINAL BALANCE (LONG): ' + str(resume['finalBalanceLong']))
+        f.write('\n#TOTAL LONG:           ' + str(resume['longN']))
+        f.write('\n#LONG CLOSED BY SL:    ' + str(resume['longCloseBySL']))
+        f.write('\n#LONG PROFIT:          ' + str(resume['longProfit']))
+        f.write('\n#MAX LONG PROFIT:      ' + str(resume['longMaxP']))
+        f.write('\n#MIN LONG PROFIT:      ' + str(resume['longMinP']))
+        f.write('\n#MAX DURATION LONG:    ' + str(resume['longMaxPeriod']))
+        f.write('\n#MIN DURATION LONG:    ' + str(resume['longMinPeriod']))
+        f.write('\n')
+        f.write('\n#-------------- SHORT ----------------')
+        f.write('\n#FINAL BALANCE (SHORT): ' + str(resume['finalBalanceShort']))
+        f.write('\n#TOTAL SHORT:           ' + str(resume['shortN']))
+        f.write('\n#SHORT CLOSED BY SL:    ' + str(resume['shortCloseBySL']))
+        f.write('\n#SHORT PROFIT:          ' + str(resume['shortProfit']))
+        f.write('\n#MAX SHORT PROFIT:      ' + str(resume['shortMaxP']))
+        f.write('\n#MIN SHORT PROFIT:      ' + str(resume['shortMinP']))
+        f.write('\n#MAX DURATION SHORT:    ' + str(resume['shortMaxPeriod']))
+        f.write('\n#MIN DURATION SHORT:    ' + str(resume['shortMinPeriod']))
+        f.write('\n')
+        f.write('\n')
+        f.write('\n#--------- STRATEGY PARAMETERS -------')
+        f.write('\n')
+        f.write('\n#DATA FRAME')
+        f.write('\n')
+        f.write('\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(backtestDetail.to_string())
+      pfile.close()
+
+      if printAllDataFrame: 
+        with open(filename, 'a') as f:
+          f.write('\n\n**   FULL DATA ***\n')
+
+      pfile = open(filename, 'a')
+      pfile.write(df.to_string())
+      pfile.close()
+    
+    #backtestDetail.to_csv(filename, sep='\t')
+
+  def GetTickers(self,
+               symbol:str, 
+            timeframe:str,
+                limit:int = 1000,
+             fromFile:str = False):
+
+    if fromFile:
+      print('The data is obtain from local directory.')
+      list_of_files = glob.glob('/home/rfeynman/Dropbox/src/BinanceDB/*.csv')
+      df = pd.DataFrame()  
+
+      for x in list_of_files:
+        tmpString = x[list_of_files[0].find('_')-9:]
+        if tmpString[tmpString.find('_')+1:tmpString.find('.')] == timeframe and tmpString[tmpString.find('/')+1:tmpString.find('_')] == symbol:
+          print(tmpString[tmpString.find('_')+1:tmpString.find('.')])
+          print(tmpString[tmpString.find('/')+1:tmpString.find('_')])
+          df = pd.read_csv(x, sep = '\t')
+          df['date'] = pd.to_datetime(df['date'])
+    else:
+      print('The data will by obtain from Binance')
+      df = self.exchange.GetSymbolKlines(symbol = symbol, interval = timeframe, limit = limit)
+    return df
 
 
   @staticmethod

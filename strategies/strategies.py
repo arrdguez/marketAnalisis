@@ -90,10 +90,15 @@ class Strategies:
 
     return df, listResult
 
-  def SslEMA(self, df, emalength:int = 200, smalength:int = 10):
+  def SslEMA(self, df, emalength:int = 200, smalength:int = 10, paramevaluation:bool = False):
+
+
+    if paramevaluation:
+      return [8,9, 10,11], [200]
 
     print('\n  **  Evaluating SSL+200EMA strategy  **')
-
+    print('EMA: ',emalength)
+    print('SMA: ',smalength)
     df = Strategies.SSL(df,emalength = emalength, smalength = smalength)
     print('  **  The SSL was evaluated  **')
     df['trend'] = ''

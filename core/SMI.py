@@ -2,11 +2,8 @@
 
 
 import pandas as pd
-
-
-
+#from aux import Binance
 from finta import TA
-
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -65,7 +62,7 @@ class smiHistogram():
     return SMH
 
 
-  def ADX(self, df):
+  def ADX(self, df, printdf:bool = False):
     print("Calculating ADX...")
 
 
@@ -104,8 +101,7 @@ class smiHistogram():
     df['plus'] = 100 * df['plus'] / df['truerange']
     df['minus'] = 100 * df['minus'] / df['truerange']
 
-   # for i in range(len(df['close'])):
-   #   print(str(df.loc[i,'date'])+"\t"+str(df.loc[i,'minus'])+"\t"+str(df.loc[i,'plus']))
+   
 
     df['sum'] = df['minus'] + df['plus']
 
@@ -117,18 +113,20 @@ class smiHistogram():
 
     #print(df['tmp'])
     df['ADX'] =100 * TA.SMMA(df, period=adxlen, column='tmp', adjust=True)
-    print(df['ADX'])
+    if printdf:
+      df.to_csv("./df.csv", sep='\t')
+      print(df['ADX'])
     return(df['ADX'])
 
 
 def main():
 
   #The next code was created to test 
-  exchange = Binance()
-  df = exchange.GetSymbolKlines("BTCUSDT", "1h")
+  #exchange = Binance()
+  #df = exchange.GetSymbolKlines("BTCUSDT", "1h")
   smi = smiHistogram(export = True)
   #smi.SMIH(df)
-  smi.ADX(df)
+  smi.ADX(df, printdf = True)
   #print(df)
 
 

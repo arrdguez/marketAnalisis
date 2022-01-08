@@ -37,7 +37,8 @@ def run():
 
     ts = tradeSigns()
     #ts.backtesting(symbol, timeframe)
-    ts.BacktestLoop()
+    #ts.BacktestLoop()
+    ts.ParameterStrategiesEvaluator()
 
 
 def main():
