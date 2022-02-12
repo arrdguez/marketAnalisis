@@ -94,13 +94,15 @@ class Strategies:
 
 
     if paramevaluation:
-      return [8,9, 10,11], [200]
+      strategyParams = { 'emalength' : [200],
+                         'smalength' : [10]}
+      return strategyParams
 
     print('\n  **  Evaluating SSL+200EMA strategy  **')
     print('EMA: ',emalength)
     print('SMA: ',smalength)
     df = Strategies.SSL(df,emalength = emalength, smalength = smalength)
-    print('  **  The SSL was evaluated  **')
+    print('  **  The SSL was calculated  **')
     df['trend'] = ''
     df['LongSignals'] = ''
     df['ShortSignals'] = ''
@@ -167,7 +169,7 @@ class Strategies:
       #if df['signal'][i] == '':
       #  df['signal'].iloc[i] = ' '
 
-    print('  **  The evaluation was finish successfully   **')
+    print('  **  The strategy evaluation finished successfully   **')
     df = df.drop(columns=['Hlv', 'smaHigh', 'smaLow', 'trend'])
     
     return df

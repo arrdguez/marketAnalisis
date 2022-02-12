@@ -33,11 +33,11 @@ class tradeSigns():
                      timeframe:str, 
                             df:pd.DataFrame,
                            btd:bool = True,
-             printAllDataFrame: bool = True,
+             printAllDataFrame:bool = True,
                        restart:bool = True, 
                       position:str = 'both',
                       strategy:str = None,
-                      extraName:str = None):
+                     extraName:str = None):
     """
       position : long/short/closefirst/both/
     """
@@ -168,7 +168,7 @@ class tradeSigns():
 
     print(symbol)
     print(timeframe)
-    df = self.GetTickers(symbol = symbol, timeframe = timeframe, limit = 500, fromFile = False)
+    df = self.GetTickers(symbol = symbol, timeframe = timeframe, limit = 1500, fromFile = False)
     backTestStrategy = Strategies()
     parameters = backTestStrategy.SslEMA(df, paramevaluation = True)
     smalength = parameters[0]
@@ -199,24 +199,6 @@ class tradeSigns():
   def BacktestLoop(self, symbol:list = ['BTCUSDT'], timeframe:list = ['1m']):
               
 
-    
-
-    symbol = ['ADAUSDT','BTCUSDT','ETHUSDT','BNBUSDT', 'XRPUSDT', "LTCUSDT", 'AVAXUSDT']
-    timeframe = ['1m', '3m', '5m', '15m', '30m', '1h', '4h']
-    
-    '''
-    for i in symbol:
-      for x in timeframe:
-        filename = str(i)+'_'+str(x)+'.csv'
-        print(i)
-        df = self.exchange.GetSymbolKlines(symbol = i, interval = x, limit = 20000)
-        df.to_csv(filename, sep = '\t', index = False, columns = ['open','high', 'low', 'close', 'volume', 'date',])
-        #pfile = open(filename, 'w')
-        #pfile.write(df.to_string())
-        #pfile.close()
-    
-    exit()
-    '''
 
     BackTestResume = pd.DataFrame(columns = ['symbol',
                                              'timeframe',
@@ -241,10 +223,10 @@ class tradeSigns():
                                              'shortCloseBySL',])
 
     symbol = ['BTCUSDT']
-    timeframe = ['1m']
-    smaL = 10
+    timeframe = ['30m']
 
     backTestStrategy = Strategies()
+
     for i in range(len(symbol)):
       for x in range(len(timeframe)):
 
