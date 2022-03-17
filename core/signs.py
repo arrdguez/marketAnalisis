@@ -28,16 +28,17 @@ class tradeSigns():
     self.exchange = Binance()
     self.chart = chart()
     self.SMIH = smiHistogram()
+    self.filesList = []
 
   def backtesting(self, symbol:str, 
                      timeframe:str, 
                             df:pd.DataFrame,
-                           btd:bool = True,
+                           btd:bool = True,  #btd backtesting details ... rename this var ....?!?!?!!?!?!?!
              printAllDataFrame:bool = True,
                        restart:bool = True, 
-                      position:str = 'both',
-                      strategy:str = None,
-                     extraName:str = None):
+                      position:str  = 'both',
+                      strategy:str  = None,
+                     extraName:str  = None):
     """
       position : long/short/closefirst/both/
     """
@@ -51,10 +52,13 @@ class tradeSigns():
 
     
     print('  **  Back-testing in progress  ** ')
+
+    #SOME REFERENCES
     #df, dataTrade, resume, backtestDetail, temporalDict
     # 0      1        2            3             4
 
     if position == 'long':
+      print('  **  Back-testing will test the LONG position only  **')
       result = self.long(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
       df =             result[0]
       dataTrade =      result[1]
@@ -70,7 +74,10 @@ class tradeSigns():
                backtestDetail = backtestDetail, 
                     dataTrade = dataTrade,
                      position = 'long')
+
+
     elif position == 'short':
+      print('  **  Back-testing will test the SHORT position only  **')
       result = self.short(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
       df =             result[0]
       dataTrade =      result[1]
@@ -86,7 +93,10 @@ class tradeSigns():
                backtestDetail = backtestDetail, 
                     dataTrade = dataTrade,
                      position = 'short')
+
+
     elif position == 'closefirst':
+      print('  **  Back-testing will test the LONG and SHORT positions but, the entries will take place after close previous position  ** ')
       result = self.closeFirst(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
       df =             result[0]
       dataTrade =      result[1]
@@ -103,6 +113,7 @@ class tradeSigns():
                     dataTrade = dataTrade,
                      position = 'long')
     elif position == 'both':
+      print('  **  Back-testing will test LONG and SHORT positions at the same time, but independently each other  ** ')
       df['trade'] = ''
       longResult  = self.long(df = df, symbol = symbol, timeframe = timeframe, restart = restart)
       df             = longResult[0]
@@ -126,6 +137,8 @@ class tradeSigns():
       #print(longResult[4])
       #print(resume)
       #exit()
+
+
       if btd:
         self.ResumeCreator(df = df, 
                     extraName = extraName,
@@ -234,6 +247,10 @@ class tradeSigns():
         print(timeframe[x])
         df = self.GetTickers(symbol = symbol[i], timeframe = timeframe[x], limit = 500, fromFile = False)
         df = backTestStrategy.SslEMA(df)
+        #filename = './tmp/'+symbol[i]+'_'+timeframe[x]+'.scv'
+        #self.filesList.append(filename)
+        #df.to_csv(filename)
+
         result = self.backtesting(symbol[i], timeframe[x], df = df)
         #pprint.pprint(result)
         BackTestResume = BackTestResume.append(result, ignore_index=True, sort=False)
